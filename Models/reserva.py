@@ -16,7 +16,7 @@ class Reserva(Base):
     __tablename__ = 'reservas'
     
     id = Column(Integer, primary_key=True)
-    status = Column(Enum(Status), nullable=False)
+    status = Column(Enum(Status))
     locacao_id = Column(Integer, ForeignKey('locacao.id'))
     locacao = relationship('Locacao', backref='reservas')
     
