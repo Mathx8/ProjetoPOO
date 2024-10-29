@@ -3,9 +3,9 @@ from sqlalchemy.orm import sessionmaker
 from pessoa import Base  # Importa o Base e Locadora se necessário
 from funcionario import Funcionario  # Importa Funcionario para registrar a tabela
 from cliente import Cliente  # Importa Cliente para registrar a tabela
-import reserva
+'''import reserva
 import carro
-from locacao import Locacao
+from locacao import Locacao'''
 from base import Base
 
 # Configura o banco de dados (exemplo com SQLite)

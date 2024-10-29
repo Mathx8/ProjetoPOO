@@ -57,7 +57,6 @@ class Locadora(Base):
                     raise DataNascFuturaException()
                 
                 self.DataNasc = dataNasc
-                print("Data de nascimento registrada com sucesso.")
                 break  # Sai do loop se tudo estiver correto
             
             except ValueError:
