@@ -1,10 +1,10 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
-from Pessoa import Locadora, Base
+from pessoa import Locadora, Base
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 class Funcionario(Locadora):
-    __tablename__ = 'Funcionario'
+    __tablename__ = 'funcionario'
 
     id_funcionario = Column(Integer, primary_key=True)
     Funcao = Column(String)
@@ -35,7 +35,7 @@ def adicionar_funcionario(session, nome, idade, cpf, data_nasc, funcao):
             return f"Erro ao adicionar funcionário: {e}"
   
 # Configura o banco de dados (exemplo com SQLite)
-engine = create_engine('sqlite:///Locadoras.db')
+engine = create_engine('sqlite:///locadora.db')
 Base.metadata.create_all(engine)
 
 # Cria uma sessão

@@ -1,11 +1,11 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime  # Importando DateTime do SQLAlchemy
-from Pessoa import Locadora, Base
+from pessoa import Locadora, Base
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
 
 class Cliente(Locadora): 
-    __tablename__ = 'Cliente'
+    __tablename__ = 'cliente'
 
     id_cliente = Column(Integer, primary_key=True)
     Numero_Carteira = Column(Integer, nullable=False)  
@@ -60,7 +60,7 @@ def adicionar_cliente(session, nome, idade, cpf, data_nasc, numero_carteira, cat
         return f"Erro ao adicionar cliente: {e}"
 
 # Configura o banco de dados
-engine = create_engine('sqlite:///Locadoras.db')
+engine = create_engine('sqlite:///locadora.db')
 Base.metadata.create_all(engine)
 
 # Cria uma sessão

@@ -1,6 +1,7 @@
 import enum
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, Float, Enum
 from sqlalchemy.orm import relationship, sessionmaker, declarative_base
+from base import Base
 
 # Criação do engine e da sessão
 engine = create_engine('sqlite:///locadora.db')
@@ -13,10 +14,6 @@ class Status(enum.Enum):
     EM_MANUNTENCAO = "em_manuntencao"
     FORA_DE_SERVICO = "fora_de_servico"
     
-
-Base = declarative_base()
-
-
 
 class Carro(Base):
     __tablename__ = 'automovel'
