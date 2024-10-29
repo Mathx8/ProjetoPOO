@@ -1,9 +1,7 @@
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.orm import declarative_base
-
-Base = declarative_base()
-
+from base import Base
 
 class DataNascFuturaException(Exception):
     def __init__(self, message="Data de nascimento não pode ser no futuro."):
