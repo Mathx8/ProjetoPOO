@@ -1,6 +1,5 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, create_engine
 from pessoa import Locadora, Base
-from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 class Funcionario(Locadora):
@@ -21,19 +20,25 @@ class Funcionario(Locadora):
 
 def adicionar_funcionario(session, nome, idade, cpf, data_nasc, funcao):
     try:
-            novo_funcionario = Funcionario(nome, idade, cpf, data_nasc, funcao)
-            novo_funcionario.Validar_nome(nome)
-            novo_funcionario.Validar_idade(idade)
-            novo_funcionario.Validar_Cpf(cpf, session)
-            novo_funcionario.Validar_DataNasc(data_nasc)
-            novo_funcionario.Validar_funcao(funcao)
+        novo_funcionario = Funcionario(nome, idade, cpf, data_nasc, funcao)
+        novo_funcionario.Validar_nome(nome)
+        novo_funcionario.Validar_idade(idade)
+        novo_funcionario.Validar_Cpf(cpf, session)
+        novo_funcionario.Validar_DataNasc(data_nasc)
+        novo_funcionario.Validar_funcao(funcao)
 
-            session.add(novo_funcionario)
-            session.commit()
-            return f"Funcionário '{nome}' adicionado com sucesso."
+        session.add(novo_funcionario)
+        session.commit()
+        return f"Funcionário '{nome}' adicionado com sucesso."
     except ValueError as e:
-            return f"Erro ao adicionar funcionário: {e}"
-  
+        return f"Erro ao adicionar funcionário: {e}"
+    except Exception as e:
+        return f"Ocorreu um erro inesperado: {e}"
+
+# Configura o banco de dados (exemplo com SQLite)
+engine = create_engine('sqlite:///locadora.db')
+Base.metadata.create_all(engine)
+ 
 # Configura o banco de dados (exemplo com SQLite)
 engine = create_engine('sqlite:///locadora.db')
 Base.metadata.create_all(engine)
@@ -51,8 +56,8 @@ funcionario3 = adicionar_funcionario(session,"Carlos Silva", 29, "33333333333", 
 print(funcionario3)
 funcionario4 = adicionar_funcionario(session,"Ana Oliveira", 26, "44444444444", "1997-03-30", "Auxiliar")
 print(funcionario4)
-funcionario5 = adicionar_funcionario(session,"Luciana Santos", 28, "55555555555", "1995-12-25", "Vendedora")
-print(funcionario5)
+'''funcionario5 = adicionar_funcionario(session,"Luciana Santos", 28, "55555555555", "1995-12-25", "Vendedora")
+print(funcionario5)'''
         
 # Confirma a adição no banco de dados
 session.commit()

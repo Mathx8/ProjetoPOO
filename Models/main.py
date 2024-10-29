@@ -18,4 +18,4 @@ session = Session()
 # Cria as tabelas, se ainda não existirem
 Base.metadata.create_all(engine)
 
-print("Tabelas 'Pessoa', 'Funcionario' e 'Cliente' criadas com sucesso.")
+#print("Tabelas 'Pessoa', 'Funcionario' e 'Cliente' criadas com sucesso.")

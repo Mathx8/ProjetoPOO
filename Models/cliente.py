@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime  # Importando DateTime do SQLAlchemy
 from pessoa import Locadora, Base
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker,relationship
 from datetime import datetime
 
 class Cliente(Locadora): 
@@ -13,6 +13,7 @@ class Cliente(Locadora):
     Data_Emissao = Column(DateTime, nullable=False)  
     Data_Validade = Column(DateTime, nullable=False)  
     cod_cliente = Column(Integer, ForeignKey('Pessoa.Cod_Usuario'), nullable=False)
+   
 
     def __init__(self, Nome, Idade, Cpf, DataNasc, Numero_Carteira, Categoria, Data_Emissao, Data_Validade):
         super().__init__(Nome, Idade, Cpf, DataNasc)

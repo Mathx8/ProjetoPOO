@@ -10,7 +10,6 @@ from sqlalchemy.exc import NoResultFound
 engine = create_engine('sqlite:///locadora.db')
 Session = sessionmaker(bind=engine)
 session = Session()
-
 class Locacao(Base):
     __tablename__ = 'locacao'
     
@@ -23,7 +22,7 @@ class Locacao(Base):
     cliente_id = Column(Integer, ForeignKey('cliente.id_cliente'))
     reserva = relationship('Reserva', backref='locacao')
     carro = relationship('Carro', backref='locacao')
-    cliente = relationship('Cliente', backref='locacao')
+
 
     @property
     def calcular_valor_total(self):
