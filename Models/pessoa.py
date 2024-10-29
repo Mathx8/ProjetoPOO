@@ -29,9 +29,10 @@ class Locadora(Base):
         self.Nome = nome
 
     def Validar_idade(self, idade):
-        if not isinstance(idade, int) or idade < 18:
-            raise ValueError("Idade inválida, deve ser um número inteiro positivo e maior que 18 anos.")
+        if not isinstance(idade, int) or idade < 18:  # Permitir idade 18 como válida
+            raise ValueError("Idade inválida, deve ser um número inteiro positivo e maior ou igual a 18 anos.")
         self.Idade = idade
+
 
     def Validar_Cpf(self, cpf, session):
         if not (cpf.isdigit() and len(cpf) == 11):

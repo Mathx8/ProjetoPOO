@@ -77,8 +77,8 @@ cliente3 = adicionar_cliente(session, "Carlos Eduardo", 29, "11122233344", "1994
 print(cliente3)
 cliente4 = adicionar_cliente(session, "Fernanda Lima", 26, "44455566677", "1997-03-30", '44445678901', "D", "2024-04-01", "2030-04-01")
 print(cliente4)
-cliente5 = adicionar_cliente(session, "Lucas Martins", 28, "88899900011", "1995-12-25", '55545678901', "E", "2024-05-01", "2030-05-01")
-print(cliente5)
+'''cliente5 = adicionar_cliente(session, "Lucas Martins", 28, "88899900011", "1995-12-25", '55545678901', "E", "2024-05-01", "2030-05-01")
+print(cliente5)'''
 
 # Fecha a sessão
 session.close()
