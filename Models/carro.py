@@ -34,14 +34,76 @@ class Carro(Base):
 # Criação das tabelas no banco de dados
 Base.metadata.create_all(engine)
 
-def adicionar_automovel(placa,cor,  marca, modelo, valor, valor_diario, km):
+def adicionar_automovel():
+    
+    while True:
+            placa = input('Placa: ').strip()
+            if not placa:
+                print("Por favor, preencha a placa.")
+                continue
+
+            cor = input('Cor do Automóvel: ').strip()
+            if not cor:
+                print("Por favor, preencha a cor do automóvel.")
+                continue
+
+            marca = input('Marca do Automóvel: ').strip()
+            if not marca:
+                print("Por favor, preencha a marca do automóvel.")
+                continue
+
+            modelo = input('Modelo do Automóvel: ').strip()
+            if not modelo:
+                print("Por favor, preencha o modelo do automóvel.")
+                continue
+
+            valor_input = input('Valor do Automóvel: ').strip()
+            try:
+                valor = float(valor_input)
+                if valor <= 0:
+                    print("Por favor, preencha um valor válido maior que zero.")
+                    continue
+            except ValueError:
+                print("Por favor, insira um valor numérico válido para o valor do automóvel.")
+                continue
+
+            valor_diario_input = input('Valor Diário do Automóvel: ').strip()
+            try:
+                valor_diario = float(valor_diario_input)
+                if valor_diario <= 0:
+                    print("Por favor, preencha um valor diário válido maior que zero.")
+                    continue
+            except ValueError:
+                print("Por favor, insira um valor numérico válido para o valor diário do automóvel.")
+                continue
+
+            km_input = input('Quilometragem do Automóvel: ').strip()
+            try:
+                km = float(km_input)
+                if km <= 0:
+                    print("Por favor, preencha uma quilometragem válida maior que zero.")
+                    continue
+            except ValueError:
+                print("Por favor, insira um valor numérico válido para a quilometragem do automóvel.")
+                continue
+        
+            
+
+            automovel_existente = session.query(Carro).filter_by(placa=placa).first()
+            if automovel_existente:
+                print(f"Já existe um automóvel com a placa '{placa}'. Não foi possível adicionar.")
+                continue
+
+            salvar_automovel(placa, cor, marca, modelo, valor, valor_diario, km)
+            break
+    
+def salvar_automovel(placa,cor,  marca, modelo, valor, valor_diario, km):
     automovel = session.query(Carro).filter_by(placa = placa, cor=cor,  marca = marca, modelo = modelo, valor = valor, valor_diario = valor_diario, km = km).first()
     #Mudar o if pra verificar atraves da placa, evitando o não adicionamento de carros iguais
     if not automovel:
         automovel = Carro(placa = placa, cor=cor,  marca = marca, modelo = modelo, valor = valor, valor_diario = valor_diario, km = km)
         session.add(automovel)
         session.commit()
-
 
 def consultar_automovel():
     automoveis = session.query(Carro).all()
@@ -54,7 +116,10 @@ def consultar_automovel():
         print(f"Valor: {automovel.valor}")
         print(f"Valor diario: {automovel.valor_diario}")
         print(f"Quilometragem: {automovel.km}")
-        print(f"Status: {automovel.status}")
+        if automovel.status is not None:
+            print(f"Status: {automovel.status.value}")
+        else:
+            print("Status: Não definido")
         print("")
 
 def remover_automovel(placa):
@@ -62,33 +127,63 @@ def remover_automovel(placa):
     if automovel:
         session.delete(automovel)
         session.commit()
-        print(f"Automovel com placa {placa} removido com sucesso.")
+        print(f"Automovel com placa '{placa}' removido com sucesso.")
     else:
-        print(f"Automovel com placa {placa} não encontrado.")
+        print(f"Automovel com placa '{placa}' não encontrado.")
 
 def editar_automovel(placa):
     automovel = session.query(Carro).filter_by(placa=placa).first()
     if automovel:
         print(f"Automóvel encontrado: {automovel.marca} {automovel.modelo} ({automovel.placa})")
         
+        while True:
         # Coletar novas informações
-        nova_cor = input(f'Nova cor (atual: {automovel.cor}): ')
-        novo_valor = input(f'Novo valor (atual: {automovel.valor}): ')
-        novo_valor_diario = input(f'Novo valor diario (atual: {automovel.valor_diario}): ') 
-        nova_km = input(f'Nova quilometragem (atual: {automovel.km}): ') 
-        
-        # Atualizar os atributos
-        automovel.cor = nova_cor
-        automovel.valor = float(novo_valor) if novo_valor else automovel.valor
-        automovel.valor_diario = float(novo_valor_diario) if novo_valor_diario else automovel.valor_diario
-        automovel.km = float(nova_km) 
-        
-        # Persistir as mudanças
-        session.commit()
-        print(f"Automóvel {placa} atualizado com sucesso.")
-    else:
-        print(f"Automóvel com placa {placa} não encontrado.")
+            nova_cor = input(f'Nova cor (atual: {automovel.cor}): ').strip()
+            if not nova_cor:
+                    print("Por favor, preencha a marca do automóvel.")
+                    continue
+            novo_valor = input(f'Novo valor (atual: {automovel.valor}): ')
+            try:
+                valor = float(novo_valor)
+                if valor <= 0:
+                    print("Por favor, preencha um valor válido maior que zero.")
+                    continue
+            except ValueError:
+                print("Por favor, insira um valor numérico válido para o valor do automóvel.")
+                continue
+            novo_valor_diario = input(f'Novo valor diario (atual: {automovel.valor_diario}): ')
+            try:
+                valor_diario = float(novo_valor_diario)
+                if valor_diario <= 0:
+                    print("Por favor, preencha um valor diário válido maior que zero.")
+                    continue
+            except ValueError:
+                print("Por favor, insira um valor numérico válido para o valor diário do automóvel.")
+                continue
 
+            nova_km = input(f'Nova quilometragem (atual: {automovel.km}): ')
+            try:
+                km = float(nova_km)
+                if km <= 0:
+                    print("Por favor, preencha uma quilometragem válida maior que zero.")
+                    continue
+            except ValueError:
+                print("Por favor, insira um valor numérico válido para a quilometragem do automóvel.")
+                continue
+
+
+            # Atualizar os atributos
+            automovel.cor = nova_cor
+            automovel.valor = float(novo_valor) if novo_valor else automovel.valor
+            automovel.valor_diario = float(novo_valor_diario) if novo_valor_diario else automovel.valor_diario
+            automovel.km = float(nova_km) 
+            
+            # Persistir as mudanças
+            session.commit()
+            print(f"Automóvel '{placa}' atualizado com sucesso.")
+            break
+    else:
+        print(f"Automóvel com placa '{placa}' não encontrado.")
 
 def status(placa):
     automovel = session.query(Carro).filter_by(placa=placa).first()
@@ -106,22 +201,26 @@ def status(placa):
 
             opcao = input('Opção: ')
             if opcao == '1':
-                automovel.status = "disponivel"
-                
+                automovel.status = Status.DISPONIVEL
+                break
             elif opcao == '2':
-                automovel.status = "alugado"
+                automovel.status = Status.ALUGADO
+                break
             elif opcao == '3':
-                automovel.status = "em_manuntencao"
+                automovel.status = Status.EM_MANUNTENCAO
+                break
             elif opcao == '4':
-                automovel.status = "fora_de_servico"
+                automovel.status = Status.FORA_DE_SERVICO
+                break
             elif opcao == '5':
                 break
         
             else:
                 print('Opção inválida. Tente novamente.')
+    else:
         
-
-        
+        print(f"Automovel com placa '{placa}' não encontrado.")
+      
 def main():
     while True:
         print('\nEscolha uma opção:')
@@ -134,14 +233,7 @@ def main():
 
         opcao = input('Opção: ')
         if opcao == '1':
-            placa = input('Placa: ')
-            cor = input('Cor do Automovel: ')
-            marca = input('Marca do Automovel: ')
-            modelo = input('Modelo do Automovel: ')
-            valor = float(input('Valor do Automovel: '))
-            valor_diario = float(input('Valor Diario do Automovel: '))
-            km = float(input('Quilometragem do Automovel: '))
-            adicionar_automovel(placa, cor,  marca, modelo, valor, valor_diario,  km)
+            adicionar_automovel()
         elif opcao == '2':
             consultar_automovel()
         elif opcao == '3':
