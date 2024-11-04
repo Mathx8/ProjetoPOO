@@ -23,10 +23,6 @@ def adicionar_cliente_interface():
         # Converte idade para inteiro
         idade = int(idade)
 
-        # Converte as datas para objetos `datetime`
-        data_nasc = datetime.strptime(data_nasc, '%Y-%m-%d')
-        data_emissao = datetime.strptime(data_emissao, '%Y-%m-%d')
-        data_validade = datetime.strptime(data_validade, '%Y-%m-%d')
 
         # Chama a função para adicionar o cliente
         resultado = adicionar_cliente(session, nome, idade, cpf, data_nasc, numero_carteira, categoria, data_emissao, data_validade)
