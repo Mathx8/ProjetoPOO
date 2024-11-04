@@ -1,8 +1,11 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from pessoa import Base  # Importa o Base e Locadora se necessário
-from funcionario import Funcionario  # Importa Funcionario para registrar a tabela
-from cliente import Cliente  # Importa Cliente para registrar a tabela
+from pessoa import Base  
+from funcionario import Funcionario  
+from cliente import Cliente
+from reserva import Reserva
+from locacao import Locacao
+from carro import Carro 
 '''import reserva
 import carro
 from locacao import Locacao'''
@@ -18,4 +21,4 @@ session = Session()
 # Cria as tabelas, se ainda não existirem
 Base.metadata.create_all(engine)
 
-#print("Tabelas 'Pessoa', 'Funcionario' e 'Cliente' criadas com sucesso.")
+print("Tabelas 'Pessoa', 'Funcionario' e 'Cliente' criadas com sucesso.")
