@@ -6,6 +6,7 @@ from cliente import Cliente
 from sqlalchemy import DateTime, create_engine, Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy.exc import NoResultFound
+from pessoa import Locadora
 
 engine = create_engine('sqlite:///locadora.db')
 Session = sessionmaker(bind=engine)
@@ -20,8 +21,9 @@ class Locacao(Base):
     reserva_id = Column(Integer, ForeignKey('reservas.id'))
     carro_placa = Column(String, ForeignKey('automovel.placa'))
     cliente_id = Column(Integer, ForeignKey('cliente.id_cliente'))
-    reserva = relationship('Reserva', backref='locacao')
-    carro = relationship('Carro', backref='locacao')
+    reserva = relationship('Reserva', back_populates='locacoes')
+    carro = relationship('Carro', backref='locacoes')
+    cliente = relationship('Cliente')
 
 
     @property
@@ -34,7 +36,7 @@ class Locacao(Base):
 # Certifique-se de que todas as tabelas sejam criadas
 Base.metadata.create_all(engine)
 
-def alugar_carro(session):
+def alugar_carro():
     nome_cliente = input("Digite o nome do cliente: ")
     carro_placa = input("Digite a placa do carro: ")
     
@@ -44,7 +46,7 @@ def alugar_carro(session):
             print("Carro não disponível para aluguel.")
             return
         
-        cliente = session.query(Cliente).filter_by(nome=nome_cliente).one_or_none()
+        cliente = session.query(Cliente).filter_by(Nome=nome_cliente).one_or_none()
         if not cliente:
             print("Cliente não encontrado. Por favor, registre o cliente primeiro.")
             return
@@ -56,7 +58,7 @@ def alugar_carro(session):
         locacao = Locacao(
             reserva_id=reserva.id,
             carro_placa=carro.placa,
-            cliente_id=cliente.id
+            cliente_id=cliente.id_cliente
         )
         
         carro.status = Status.ALUGADO
@@ -64,7 +66,7 @@ def alugar_carro(session):
         session.add(locacao)
         session.commit()
 
-        print(f"Carro {carro.placa} alugado com sucesso para o cliente {cliente.nome}.")
+        print(f"Carro {carro.placa} alugado com sucesso para o cliente {cliente.Nome}.")
 
     except NoResultFound:
         print("Carro ou reserva não encontrada.")
@@ -73,28 +75,39 @@ def alugar_carro(session):
         print(f"Ocorreu um erro: {e}")
         session.rollback()
         
-def devolver_carro(session):
+def devolver_carro():
     nome_cliente = input("Digite o nome do cliente: ")
     carro_placa = input("Digite a placa do carro alugado: ")
     try:
-        cliente = session.query(Cliente).filter_by(nome=nome_cliente).one_or_none()
+        cliente = session.query(Cliente).filter_by(Nome=nome_cliente).one_or_none()
         if not cliente:
             print("Cliente não encontrado.")
             return
         
-        locacao = session.query(Locacao).filter_by(cliente_id=cliente.id, carro_placa=carro_placa).one_or_none()
+        reserva = Reserva(status=StatusLocacao.DEVOLVIDO)
+        locacao = session.query(Locacao).filter_by(cliente_id=cliente.id_cliente, carro_placa=carro_placa).all()
         if not locacao:
             print("Locação não encontrada para este cliente e carro.")
             return
         
-        carro = session.query(Carro).filter_by(placa=carro_placa).one()
+        carro = session.query(Carro).filter_by(placa=carro_placa).one_or_none()
+        if not carro:
+            print("Carro não encontrado.")
+            return
+        locacao = Locacao(
+            reserva_id=reserva.id,
+            carro_placa=carro.placa,
+            cliente_id=cliente.id_cliente  
+        )
+        
+        
         carro.status = Status.DISPONIVEL
         
         locacao.data_devolucao = datetime.datetime.utcnow()
         
         session.commit()
         
-        print(f"Carro {carro.placa} devolvido com sucesso pelo cliente {cliente.nome}.")
+        print(f"Carro {carro.placa} devolvido com sucesso pelo cliente {cliente.Nome}.")
         print(f"Valor total a pagar: R$ {locacao.calcular_valor_total:.2f}")
     
     except NoResultFound:
@@ -103,3 +116,25 @@ def devolver_carro(session):
     except Exception as e:
         print(f"Ocorreu um erro: {e}")
         session.rollback()
+
+
+def main():
+    while True:
+        print('\nEscolha uma opção:')
+        print('1. Alugar Automovel')
+        print('2. Devolver Automoveis')
+        print('3. Sair')
+
+        opcao = input('Opção: ')
+        if opcao == '1':
+            alugar_carro()
+        elif opcao == '2':
+            devolver_carro()  
+        elif opcao == '3':
+            break
+    
+        else:
+            print('Opção inválida. Tente novamente.')
+
+if __name__ == "__main__":
+    main()

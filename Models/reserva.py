@@ -17,6 +17,6 @@ class Reserva(Base):
     id = Column(Integer, primary_key=True)
     status = Column(Enum(StatusLocacao))
 
-    locacao = relationship('Locacao', backref='reservas')
+    locacoes = relationship('Locacao', back_populates='reserva')
     
 Base.metadata.create_all(engine)
