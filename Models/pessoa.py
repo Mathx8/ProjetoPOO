@@ -7,7 +7,10 @@ class DataNascFuturaException(Exception):
     def __init__(self, message="Data de nascimento não pode ser no futuro."):
         self.message = message
         super().__init__(self.message)
-
+class DataNascFormatException(Exception):
+    def __init__(self, message="Data de nascimento inválida. Use o formato DD/MM/YYYY."):
+        self.message = message
+        super().__init__(self.message)
 class Locadora(Base):
     __tablename__ = 'Pessoa'
     
@@ -24,7 +27,7 @@ class Locadora(Base):
         self.DataNasc = DataNasc
 
     def Validar_nome(self, nome):
-        if not nome:
+        if not nome or len(nome) >3:
             raise ValueError("Nome não pode ser vazio.")
         self.Nome = nome
 
@@ -44,23 +47,21 @@ class Locadora(Base):
         self.Cpf = cpf 
 
     def Validar_DataNasc(self, dataNasc):
-        while True:
-            try:
-                # Se dataNasc é uma string, converte para datetime
-                if isinstance(dataNasc, str):
-                    dataNasc = datetime.strptime(dataNasc, '%Y-%m-%d')
-                
-                # Verifica se a data está no futuro
-                if dataNasc > datetime.now():
-                    raise DataNascFuturaException()
-                
-                self.DataNasc = dataNasc
-                break  # Sai do loop se tudo estiver correto
-            
-            except ValueError:
-                raise ValueError("Data de nascimento inválida. Use o formato YYYY-MM-DD.")
-            except DataNascFuturaException as e:
-                raise e
+            while True:
+                try:
+                    # Converte dataNasc para datetime no formato DD/MM/YYYY
+                    if isinstance(dataNasc, str):
+                        dataNasc = datetime.strptime(dataNasc, '%d/%m/%Y')
+                    
+                    # Verifica se a data está no futuro
+                    if dataNasc > datetime.now():
+                        raise DataNascFuturaException
+                    
+                    self.DataNasc = dataNasc
+                    break
+
+                except ValueError:  
+                            raise DataNascFormatException("Data de nascimento inválida. Use o formato DD/MM/YYYY.") 
 
     @staticmethod
     def adicionar_locadora(session, nome, idade, cpf, data_nasc):

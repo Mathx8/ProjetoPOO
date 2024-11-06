@@ -5,6 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from datetime import datetime
 import tkinter as tk
 from tkinter import messagebox
+from pessoa import DataNascFuturaException, DataNascFormatException
 
 class Cliente(Locadora): 
     __tablename__ = 'cliente'
@@ -27,6 +28,11 @@ class Cliente(Locadora):
         if not (str(numero_Carteira).isdigit() and len(str(numero_Carteira)) == 11):
             raise ValueError("O Número da carteira de motorista inválido, deve conter 11 dígitos.")
         self.Numero_Carteira = numero_Carteira
+    
+    def Validar_categoria(self, categoria):
+        if not categoria:
+            raise ValueError("Categoria não pode ser vazio.")
+        self.Categoria = categoria
 
     def Validar_Data_Emissao(self, data_Emissao):
         if data_Emissao >= datetime.now():
@@ -40,10 +46,10 @@ class Cliente(Locadora):
 
 def adicionar_cliente(session, nome, idade, cpf, data_nasc, numero_carteira, categoria, data_emissao, data_validade):
     try:
-        # Converte as datas para `datetime`
-        data_nasc = datetime.strptime(data_nasc, '%Y-%m-%d')
-        data_emissao = datetime.strptime(data_emissao, '%Y-%m-%d')
-        data_validade = datetime.strptime(data_validade, '%Y-%m-%d')
+        
+        data_nasc = datetime.strptime(data_nasc, '%d/%m/%Y')
+        data_emissao = datetime.strptime(data_emissao, '%d/%m/%Y')
+        data_validade = datetime.strptime(data_validade, '%d/%m/%Y')
 
         novo_cliente = Cliente(nome, idade, cpf, data_nasc, numero_carteira, categoria, data_emissao, data_validade)
 
@@ -52,6 +58,7 @@ def adicionar_cliente(session, nome, idade, cpf, data_nasc, numero_carteira, cat
         novo_cliente.Validar_idade(idade)
         novo_cliente.Validar_Cpf(cpf, session)
         novo_cliente.Validar_Numero_Carteira(numero_carteira)
+        novo_cliente.Validar_categoria(categoria)
         novo_cliente.Validar_Data_Emissao(data_emissao)
         novo_cliente.Validar_Data_Validade(data_validade)
 
@@ -77,29 +84,24 @@ def adicionar_cliente_interface():
     data_emissao = entry_data_emissao.get()
     data_validade = entry_data_validade.get()
 
-    # Verifica se todos os campos obrigatórios estão preenchidos
-    if not all([nome, idade, cpf, data_nasc, numero_carteira, categoria, data_emissao, data_validade]):
-        messagebox.showerror("Erro", "Preencha todos os campos obrigatórios.")
-        return
-
-    novo_cliente = Cliente(nome, idade, cpf, data_nasc, numero_carteira, categoria, data_emissao, data_validade)
-
-    # Chamando as validações em ordem
     try:
-        # Chama os métodos de validação
-        novo_cliente.Validar_nome(nome)
-        novo_cliente.Validar_idade(int(idade))  # Se você preferir, pode passar a conversão de idade aqui.
-        novo_cliente.Validar_Cpf(cpf, session)
-        novo_cliente.Validar_Numero_Carteira(numero_carteira)
-        novo_cliente.Validar_Data_Emissao(datetime.strptime(data_emissao, '%Y-%m-%d'))
-        novo_cliente.Validar_Data_Validade(datetime.strptime(data_validade, '%Y-%m-%d'))
-        novo_cliente.Validar_DataNasc(datetime.strptime(data_nasc, '%Y-%m-%d'))
+        # Convertendo as datas para o formato DD/MM/YYYY
+        novo_cliente = Cliente(nome, idade, cpf,data_nasc,numero_carteira, categoria,data_emissao,data_validade)
 
-        # Se todas as validações passarem, adiciona o cliente
+        # Chamando as validações em ordem
+        novo_cliente.Validar_nome(nome)
+        novo_cliente.Validar_idade(int(idade))
+        novo_cliente.Validar_Cpf(cpf, session)
+        novo_cliente.Validar_DataNasc(datetime.strptime(data_nasc, '%d/%m/%Y'))
+        novo_cliente.Validar_Numero_Carteira(numero_carteira)
+        novo_cliente.Validar_categoria(categoria)
+        novo_cliente.Validar_Data_Emissao(datetime.strptime(data_emissao, '%d/%m/%Y'))
+        novo_cliente.Validar_Data_Validade(datetime.strptime(data_validade, '%d/%m/%Y'))
+        
         session.add(novo_cliente)
         session.commit()
         messagebox.showinfo("Resultado", f"Cliente '{nome}' adicionado com sucesso.")
-        
+
         # Limpa os campos após adicionar
         entry_nome.delete(0, tk.END)
         entry_idade.delete(0, tk.END)
@@ -109,11 +111,19 @@ def adicionar_cliente_interface():
         entry_categoria.delete(0, tk.END)
         entry_data_emissao.delete(0, tk.END)
         entry_data_validade.delete(0, tk.END)
+        
 
-    except ValueError as ve:
-        messagebox.showerror("Erro de Valor", f"Erro nos valores fornecidos: {ve}")
+    except DataNascFuturaException as dt:
+        messagebox.showerror("Erro de Data", str(dt))
+        
+    except ValueError as dt:
+        messagebox.showerror("Erro de Data", str(dt))
+        
+    
+        
     except Exception as e:
         messagebox.showerror("Erro", str(e))
+
 
 
 
