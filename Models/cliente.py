@@ -15,11 +15,6 @@ class Cliente(Locadora):
     Data_Emissao = Column(DateTime, nullable=False)  
     Data_Validade = Column(DateTime, nullable=False)  
     cod_cliente = Column(Integer, ForeignKey('Pessoa.Cod_Usuario'), nullable=False)
-<<<<<<< HEAD
-=======
-    
-   
->>>>>>> 849fd2326bec19dcee936b0a80de03ec54fc0929
 
     def __init__(self, Nome, idade, Cpf, DataNasc, Numero_Carteira, Categoria, Data_Emissao, Data_Validade):
         super().__init__(Nome, idade, Cpf, DataNasc)
@@ -121,7 +116,6 @@ def adicionar_cliente_interface():
         messagebox.showerror("Erro", str(e))
 
 
-<<<<<<< HEAD
 
 if __name__ == "__main__":
     root = tk.Tk()
@@ -159,73 +153,6 @@ if __name__ == "__main__":
     tk.Label(root, text="Data de Validade:").grid(row=7, column=0)
     entry_data_validade = tk.Entry(root)
     entry_data_validade.grid(row=7, column=1)
-=======
-# Criação da janela principal
-if __name__ == "__main__":
-    root = tk.Tk()
-    root.title("Cadastro de Clientes")
-
-    # Definindo os rótulos e campos de entrada
-    tk.Label(root, text="Nome:").grid(row=0, column=0)
-    entry_nome = tk.Entry(root)
-    entry_nome.grid(row=0, column=1)
-
-    tk.Label(root, text="Idade:").grid(row=1, column=0)
-    entry_idade = tk.Entry(root)
-    entry_idade.grid(row=1, column=1)
-
-    tk.Label(root, text="CPF:").grid(row=2, column=0)
-    entry_cpf = tk.Entry(root)
-    entry_cpf.grid(row=2, column=1)
-
-    tk.Label(root, text="Data de Nascimento:").grid(row=3, column=0)
-    entry_data_nasc = tk.Entry(root)
-    entry_data_nasc.grid(row=3, column=1)
-
-    tk.Label(root, text="Número da Carteira:").grid(row=4, column=0)
-    entry_numero_carteira = tk.Entry(root)
-    entry_numero_carteira.grid(row=4, column=1)
-
-    tk.Label(root, text="Categoria:").grid(row=5, column=0)
-    entry_categoria = tk.Entry(root)
-    entry_categoria.grid(row=5, column=1)
-
-    tk.Label(root, text="Data de Emissão:").grid(row=6, column=0)
-    entry_data_emissao = tk.Entry(root) 
-    entry_data_emissao.grid(row=6, column=1)
-
-    tk.Label(root, text="Data de Validade:").grid(row=7, column=0)
-    entry_data_validade = tk.Entry(root)
-    entry_data_validade.grid(row=7, column=1)
-
-    # Botão para adicionar cliente
-    btn_adicionar = tk.Button(root, text="Adicionar Cliente", command=adicionar_cliente_interface)
-    btn_adicionar.grid(row=8, column=0, columnspan=2)
-
-    # Inicia o loop da interface
-    root.mainloop()
-
-
-'''# Cria uma sessão
-
-
-# Adiciona cinco clientes
-cliente1 = adicionar_cliente(session, "Ana Clara", 25, "12345678909", "1998-01-15", '12345678901', "A", "2024-01-01", "2030-01-01")
-print(cliente1)
-cliente2 = adicionar_cliente(session, "Bruno Oliveira", 27, "98765432100", "1996-05-20", '22345678901', "B", "2024-02-01", "2030-02-01")
-print(cliente2)
-cliente3 = adicionar_cliente(session, "Carlos Eduardo", 29, "11122233344", "1994-10-10", '33345678901', "C", "2024-03-01", "2030-03-01")
-print(cliente3)
-cliente4 = adicionar_cliente(session, "Fernanda Lima", 26, "44455566677", "1997-03-30", '44445678901', "D", "2024-04-01", "2030-04-01")
-print(cliente4)
-cliente5 = adicionar_cliente(session, "Lucas Martins", 28, "88899900011", "1995-12-25", '55545678901', "E", "2024-05-01", "2030-05-01")
-print(cliente5)
-
-# Fecha a sessão
-session.close()
-
-print("Cinco clientes foram adicionados com sucesso.")'''
->>>>>>> 849fd2326bec19dcee936b0a80de03ec54fc0929
 
     # Botão para adicionar cliente
     btn_adicionar = tk.Button(root, text="Adicionar Cliente", command=adicionar_cliente_interface)
