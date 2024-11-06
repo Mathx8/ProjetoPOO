@@ -214,6 +214,8 @@ def status(placa):
         
             else:
                 print('Opção inválida. Tente novamente.')
+                
+        session.commit()
     else:
         
         print(f"Automovel com placa '{placa}' não encontrado.")
