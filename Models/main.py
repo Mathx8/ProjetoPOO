@@ -6,6 +6,7 @@ from cliente import Cliente
 from reserva import Reserva
 from locacao import Locacao
 from carro import Carro 
+import pandas as pd
 '''import reserva
 import carro
 from locacao import Locacao'''
@@ -21,4 +22,10 @@ session = Session()
 # Cria as tabelas, se ainda não existirem
 Base.metadata.create_all(engine)
 
-print("Tabelas 'Pessoa', 'Funcionario' e 'Cliente' criadas com sucesso.")
+#print("Tabelas 'Pessoa', 'Funcionario' e 'Cliente' criadas com sucesso.")
+
+# Carrega a tabela Pessoa usando Pandas
+Pessoa = pd.read_sql_table("Pessoa", con=engine)
+
+# Exibe a tabela usando print() para um ambiente não interativo
+print(Pessoa)

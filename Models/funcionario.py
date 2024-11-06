@@ -83,40 +83,40 @@ def adicionar_funcionario_interface():
     except Exception as e:
         messagebox.showerror("Erro", str(e))
 
+if __name__ == "__main__":
+    # Criação da janela principal
+    root = tk.Tk()
+    root.title("Cadastro de Clientes")
 
-# Criação da janela principal
-root = tk.Tk()
-root.title("Cadastro de Clientes")
+    # Definindo os rótulos e campos de entrada
+    tk.Label(root, text="Nome:").grid(row=0, column=0)
+    entry_nome = tk.Entry(root)
+    entry_nome.grid(row=0, column=1)
 
-# Definindo os rótulos e campos de entrada
-tk.Label(root, text="Nome:").grid(row=0, column=0)
-entry_nome = tk.Entry(root)
-entry_nome.grid(row=0, column=1)
+    tk.Label(root, text="Idade:").grid(row=1, column=0)
+    entry_idade = tk.Entry(root)
+    entry_idade.grid(row=1, column=1)
 
-tk.Label(root, text="Idade:").grid(row=1, column=0)
-entry_idade = tk.Entry(root)
-entry_idade.grid(row=1, column=1)
+    tk.Label(root, text="CPF:").grid(row=2, column=0)
+    entry_cpf = tk.Entry(root)
+    entry_cpf.grid(row=2, column=1)
 
-tk.Label(root, text="CPF:").grid(row=2, column=0)
-entry_cpf = tk.Entry(root)
-entry_cpf.grid(row=2, column=1)
+    tk.Label(root, text="Data de Nascimento:").grid(row=3, column=0)
+    entry_data_nasc = tk.Entry(root)
+    entry_data_nasc.grid(row=3, column=1)
 
-tk.Label(root, text="Data de Nascimento:").grid(row=3, column=0)
-entry_data_nasc = tk.Entry(root)
-entry_data_nasc.grid(row=3, column=1)
-
-tk.Label(root, text="Funçao:").grid(row=4, column=0)
-entry_funcao = tk.Entry(root)
-entry_funcao.grid(row=4, column=1)
+    tk.Label(root, text="Funçao:").grid(row=4, column=0)
+    entry_funcao = tk.Entry(root)
+    entry_funcao.grid(row=4, column=1)
 
 
 
-# Botão para adicionar cliente
-btn_adicionar = tk.Button(root, text="Adicionar Funcionario", command=adicionar_funcionario_interface)
-btn_adicionar.grid(row=8, column=0, columnspan=2)
+    # Botão para adicionar cliente
+    btn_adicionar = tk.Button(root, text="Adicionar Funcionario", command=adicionar_funcionario_interface)
+    btn_adicionar.grid(row=8, column=0, columnspan=2)
 
-# Inicia o loop da interface
-root.mainloop()
+    # Inicia o loop da interface
+    root.mainloop()
 
 '''# Cria uma sessão
 funcionario1 = adicionar_funcionario(session,"João Pereira", 25, "11111111111", "1998-01-15", "Gerente")

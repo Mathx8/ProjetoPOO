@@ -33,7 +33,6 @@ class Locadora(Base):
             raise ValueError("Idade inválida, deve ser um número inteiro positivo e maior ou igual a 18 anos.")
         self.Idade = idade
 
-
     def Validar_Cpf(self, cpf, session):
         if not (cpf.isdigit() and len(cpf) == 11):
             raise ValueError("CPF inválido, deve conter 11 dígitos.")
@@ -59,11 +58,9 @@ class Locadora(Base):
                 break  # Sai do loop se tudo estiver correto
             
             except ValueError:
-                print("Data de nascimento inválida. Use o formato YYYY-MM-DD.")
-                dataNasc = input("Por favor, insira novamente a data de nascimento (YYYY-MM-DD): ")
+                raise ValueError("Data de nascimento inválida. Use o formato YYYY-MM-DD.")
             except DataNascFuturaException as e:
-                print(e.message)
-                dataNasc = input("Por favor, insira novamente a data de nascimento (YYYY-MM-DD): ")
+                raise e
 
     @staticmethod
     def adicionar_locadora(session, nome, idade, cpf, data_nasc):
@@ -72,7 +69,6 @@ class Locadora(Base):
             nova_Locadora.Validar_nome(nome)
             nova_Locadora.Validar_idade(idade)
             nova_Locadora.Validar_Cpf(cpf, session)
-
             nova_Locadora.Validar_DataNasc(data_nasc)
 
             session.add(nova_Locadora)
