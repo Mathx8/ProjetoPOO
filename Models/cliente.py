@@ -46,31 +46,7 @@ class Cliente(Locadora):
             raise ValueError("Data de validade deve ser uma data futura.")
         self.Data_Validade = data_Validade
 
-def adicionar_cliente(session, nome, idade, cpf, data_nasc, numero_carteira, categoria, data_emissao, data_validade):
-    try:
-        
-        data_nasc = datetime.strptime(data_nasc, '%d/%m/%Y')
-        data_emissao = datetime.strptime(data_emissao, '%d/%m/%Y')
-        data_validade = datetime.strptime(data_validade, '%d/%m/%Y')
 
-        novo_cliente = Cliente(nome, idade, cpf, data_nasc, numero_carteira, categoria, data_emissao, data_validade)
-
-        # Chamando as validações em ordem
-        novo_cliente.Validar_nome(nome)
-        novo_cliente.Validar_idade(idade)
-        novo_cliente.Validar_Cpf(cpf, session)
-        novo_cliente.Validar_Numero_Carteira(numero_carteira)
-        novo_cliente.Validar_categoria(categoria)
-        novo_cliente.Validar_Data_Emissao(data_emissao)
-        novo_cliente.Validar_Data_Validade(data_validade)
-
-        session.add(novo_cliente)
-        session.commit()
-        return f"Cliente '{nome}' adicionado com sucesso."
-    except ValueError as e:
-        return f"Erro ao adicionar cliente: {e}"
-    except Exception as e:
-        return f"Ocorreu um erro inesperado: {e}"
 
 # Configura o banco de dados
 engine = create_engine('sqlite:///locadora.db')

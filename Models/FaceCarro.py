@@ -1,143 +1,160 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime 
-from pessoa import Locadora, Base
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from datetime import datetime
 import tkinter as tk
-from tkinter import messagebox
-from Erros import DataNascFuturaException, DataNascFormatException
-from Erros import IdadeInvalidaException,IdadeMinimaException, CpfExistenteException,CpfInvalidoException
+from tkinter import messagebox, simpledialog
+from sqlalchemy import create_engine, Column, String, Float, Enum
+from sqlalchemy.orm import  sessionmaker
+from base import Base
+import enum
 
-class Funcionario(Locadora):
-    __tablename__ = 'funcionario'
-
-    id_funcionario = Column(Integer, primary_key=True)
-    Funcao = Column(String)
-    cod_usuario = Column(Integer, ForeignKey('Pessoa.Cod_Usuario'))  
-
-    def __init__(self, Nome, Idade, Cpf, DataNasc, Funcao):
-        super().__init__(Nome, Idade, Cpf, DataNasc)
-        self.Funcao = Funcao
-
-    def Validar_funcao(self, funcao):
-        if not funcao:
-            raise ValueError("Função não pode ser vazia.")
-        self.Funcao = funcao
-
-
-def adicionar_funcionario(session, nome, idade, cpf, data_nasc, funcao):
-    try:
-        
-        data_nasc = datetime.strptime(data_nasc, '%d/%m/%Y')
-
-
-        novo_funcionario = Funcionario(nome, idade, cpf, data_nasc,funcao)
-
-        # Chamando as validações em ordem
-        novo_funcionario.Validar_nome(nome)
-        novo_funcionario.Validar_idade(idade)
-        novo_funcionario.Validar_Cpf(cpf, session)
-        novo_funcionario.Validar_funcao(funcao)
-      
-
-        session.add(novo_funcionario)
-        session.commit()
-        return f"funcionario '{nome}' adicionado com sucesso."
-    except ValueError as e:
-        return f"Erro ao adicionar funcionario: {e}"
-    except Exception as e:
-        return f"Ocorreu um erro inesperado: {e}"
-
-# Configura o banco de dados
+# Configuração do banco de dados
 engine = create_engine('sqlite:///locadora.db')
-Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 session = Session()
 
-def adicionar_funcionario_interface():
-    nome = entry_nome.get()
-    idade = entry_idade.get()
-    cpf = entry_cpf.get()
-    data_nasc = entry_data_nasc.get()
-    funcao = entry_funcao.get()
+class Status(enum.Enum):
+    DISPONIVEL = "disponivel"
+    ALUGADO = "alugado"
+    EM_MANUNTENCAO = "em_manuntencao"
+    FORA_DE_SERVICO = "fora_de_servico"
 
+class Carro(Base):
+    __tablename__ = 'automovel'
+    placa = Column(String, primary_key=True)
+    cor = Column(String)
+    marca = Column(String)
+    modelo = Column(String)
+    valor = Column(Float)
+    valor_diario = Column(Float)
+    km = Column(Float)
+    status = Column(Enum(Status))
 
+# Criação das tabelas no banco de dados
+Base.metadata.create_all(engine)
+
+# Funções para operações com carros
+def adicionar_automovel():
+    placa = entry_placa.get().strip()
+    cor = entry_cor.get().strip()
+    marca = entry_marca.get().strip()
+    modelo = entry_modelo.get().strip()
+    valor = entry_valor.get().strip()
+    valor_diario = entry_valor_diario.get().strip()
+    km = entry_km.get().strip()
+    
+
+    
     try:
-  
-        novo_funcionario = Funcionario(nome, idade, cpf,data_nasc,funcao)
+        valor = float(valor)
+        valor_diario = float(valor_diario)
+        km = float(km)
+    except ValueError:
+        messagebox.showerror("Erro", "Insira valores numéricos válidos para valor, valor diário e km")
+        return
 
-        # Chamando as validações em ordem
-        novo_funcionario.Validar_nome(nome)
-        novo_funcionario.Validar_idade(idade)
-        novo_funcionario.Validar_Cpf(cpf, session)
-        novo_funcionario.Validar_DataNasc(datetime.strptime(data_nasc, '%d/%m/%Y'))
-        novo_funcionario.Validar_funcao(funcao)
+    automovel_existente = session.query(Carro).filter_by(placa=placa).first()
+    if automovel_existente:
+        messagebox.showerror("Erro", f"Já existe um automóvel com a placa '{placa}'.")
+        return
 
-        
-        session.add(novo_funcionario)
-        session.commit()
-        messagebox.showinfo("Resultado", f"funcionario '{nome}' adicionado com sucesso.")
+    novo_automovel = Carro(placa=placa, cor=cor, marca=marca, modelo=modelo, valor=valor, valor_diario=valor_diario, km=km, status=Status.DISPONIVEL)
+    session.add(novo_automovel)
+    session.commit()
+    messagebox.showinfo("Sucesso", "Automóvel adicionado com sucesso.")
+    limpar_campos()
 
-        # Limpa os campos após adicionar
-        entry_nome.delete(0, tk.END)
-        entry_idade.delete(0, tk.END)
-        entry_cpf.delete(0, tk.END)
-        entry_data_nasc.delete(0, tk.END)
-        entry_funcao.delete(0, tk.END)
+def limpar_campos():
+    entry_placa.delete(0, tk.END)
+    entry_cor.delete(0, tk.END)
+    entry_marca.delete(0, tk.END)
+    entry_modelo.delete(0, tk.END)
+    entry_valor.delete(0, tk.END)
+    entry_valor_diario.delete(0, tk.END)
+    entry_km.delete(0, tk.END)
 
-        
-        # Erros Data
-    except DataNascFuturaException as dt:
-        messagebox.showerror("Erro de Data", str(dt))
-    except DataNascFormatException as dt:
-        messagebox.showerror("Erro de Data", str(dt))
-        # Erros Idade
-    except IdadeInvalidaException as i:
-        messagebox.showerror("Erro de Idade", str(i))
-    except IdadeMinimaException as i:
-        messagebox.showerror("Erro de Idade", str(i))
-        # Erros CPF
-    except CpfExistenteException as cp:
-            messagebox.showerror("Erro de Cpf", str(cp))   
-    except CpfInvalidoException as cp:
-            messagebox.showerror("Erro de Cpf", str(cp))
-        #Value erro
-    except ValueError as e:
-        messagebox.showerror("Erro:", str(e))
-        #Erro desconhecido 
-    except Exception as e:
-        messagebox.showerror("Erro", str(e))
+def editar_automovel():
+    placa = simpledialog.askstring("Editar Automóvel", "Digite a placa do automóvel a ser editado:")
+    if not placa:
+        return
+    
+    automovel = session.query(Carro).filter_by(placa=placa).first()
+    if not automovel:
+        messagebox.showerror("Erro", f"Automóvel com placa '{placa}' não encontrado.")
+        return
+
+    nova_cor = simpledialog.askstring("Editar Automóvel", f"Nova cor (atual: {automovel.cor}):")
+    novo_valor = simpledialog.askfloat("Editar Automóvel", f"Novo valor (atual: {automovel.valor}):")
+    novo_valor_diario = simpledialog.askfloat("Editar Automóvel", f"Novo valor diário (atual: {automovel.valor_diario}):")
+    nova_km = simpledialog.askfloat("Editar Automóvel", f"Nova quilometragem (atual: {automovel.km}):")
+    
+    automovel.cor = nova_cor if nova_cor else automovel.cor
+    automovel.valor = novo_valor if novo_valor else automovel.valor
+    automovel.valor_diario = novo_valor_diario if novo_valor_diario else automovel.valor_diario
+    automovel.km = nova_km if nova_km else automovel.km
+    session.commit()
+    messagebox.showinfo("Sucesso", f"Automóvel '{placa}' atualizado com sucesso.")
+
+def atualizar_status():
+    placa = simpledialog.askstring("Atualizar Status", "Digite a placa do automóvel para atualizar o status:")
+    if not placa:
+        return
+    
+    automovel = session.query(Carro).filter_by(placa=placa).first()
+    if not automovel:
+        messagebox.showerror("Erro", f"Automóvel com placa '{placa}' não encontrado.")
+        return
+
+    status_selecionado = simpledialog.askstring("Atualizar Status", "Escolha o novo status (disponivel, alugado, em_manuntencao, fora_de_servico):")
+    status_selecionado = status_selecionado.strip().lower()
+    
+    if status_selecionado not in [status.value for status in Status]:
+        messagebox.showerror("Erro", "Status inválido.")
+        return
+
+    automovel.status = Status(status_selecionado)
+    session.commit()
+    messagebox.showinfo("Sucesso", f"Status do automóvel '{placa}' atualizado para '{status_selecionado}'.")
+
+# Criação da interface Tkinter
+root = tk.Tk()
+root.title("Gerenciamento de Automóveis")
+
+# Campos de entrada
+tk.Label(root, text="Placa:").grid(row=0, column=0)
+entry_placa = tk.Entry(root)
+entry_placa.grid(row=0, column=1)
+
+tk.Label(root, text="Cor:").grid(row=1, column=0)
+entry_cor = tk.Entry(root)
+entry_cor.grid(row=1, column=1)
+
+tk.Label(root, text="Marca:").grid(row=2, column=0)
+entry_marca = tk.Entry(root)
+entry_marca.grid(row=2, column=1)
+
+tk.Label(root, text="Modelo:").grid(row=3, column=0)
+entry_modelo = tk.Entry(root)
+entry_modelo.grid(row=3, column=1)
+
+tk.Label(root, text="Valor:").grid(row=4, column=0)
+entry_valor = tk.Entry(root)
+entry_valor.grid(row=4, column=1)
+
+tk.Label(root, text="Valor Diário:").grid(row=5, column=0)
+entry_valor_diario = tk.Entry(root)
+entry_valor_diario.grid(row=5, column=1)
+
+tk.Label(root, text="Quilometragem:").grid(row=6, column=0)
+entry_km = tk.Entry(root)
+entry_km.grid(row=6, column=1)
+
+# Botões
+btn_adicionar = tk.Button(root, text="Adicionar Automóvel", command=adicionar_automovel)
+btn_adicionar.grid(row=7, column=0, columnspan=2, pady=5)
 
 
-if __name__ == "__main__":
-    root = tk.Tk()
-    root.title("Cadastro de funcionarios")
-
-    # Definindo os rótulos e campos de entrada
-    tk.Label(root, text="Nome:").grid(row=0, column=0)
-    entry_nome = tk.Entry(root)
-    entry_nome.grid(row=0, column=1)
-
-    tk.Label(root, text="Idade:").grid(row=1, column=0)
-    entry_idade = tk.Entry(root)
-    entry_idade.grid(row=1, column=1)
-
-    tk.Label(root, text="CPF:").grid(row=2, column=0)
-    entry_cpf = tk.Entry(root)
-    entry_cpf.grid(row=2, column=1)
-
-    tk.Label(root, text="Data de Nascimento:").grid(row=3, column=0)
-    entry_data_nasc = tk.Entry(root)
-    entry_data_nasc.grid(row=3, column=1)
-
-    tk.Label(root, text="Função:").grid(row=4, column=0)
-    entry_funcao = tk.Entry(root)
-    entry_funcao.grid(row=4, column=1)
+btn_status = tk.Button(root, text="Atualizar Status", command=atualizar_status)
+btn_status.grid(row=10, column=0, columnspan=2, pady=5)
 
 
-    # Botão para adicionar funcionario
-    btn_adicionar = tk.Button(root, text="Adicionar funcionario", command=adicionar_funcionario_interface)
-    btn_adicionar.grid(row=8, column=0, columnspan=2)
 
-    # Inicia o loop da interface
-    root.mainloop()
+# Inicia o loop da interface
+root.mainloop()

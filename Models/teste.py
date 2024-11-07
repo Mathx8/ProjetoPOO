@@ -1,9 +1,8 @@
 import tkinter as tk
 from tkinter import messagebox, simpledialog
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, Float, Enum
-from sqlalchemy.orm import relationship, sessionmaker, declarative_base
+from sqlalchemy import create_engine, Column, Integer, String, Float, Enum
+from sqlalchemy.orm import sessionmaker
 from base import Base
-from cliente import Cliente
 import enum
 
 # Configuração do banco de dados
@@ -31,8 +30,8 @@ class Carro(Base):
 # Criação das tabelas no banco de dados
 Base.metadata.create_all(engine)
 
-# Funções para operações com carros
-def adicionar_automovel_Interface():
+# Função para adicionar automóvel
+def adicionar_automovel():
     placa = entry_placa.get().strip()
     cor = entry_cor.get().strip()
     marca = entry_marca.get().strip()
@@ -40,11 +39,11 @@ def adicionar_automovel_Interface():
     valor = entry_valor.get().strip()
     valor_diario = entry_valor_diario.get().strip()
     km = entry_km.get().strip()
-    
+
     if not placa or not cor or not marca or not modelo or not valor or not valor_diario or not km:
         messagebox.showerror("Erro", "Preencha todos os campos")
         return
-    
+
     try:
         valor = float(valor)
         valor_diario = float(valor_diario)
@@ -64,6 +63,30 @@ def adicionar_automovel_Interface():
     messagebox.showinfo("Sucesso", "Automóvel adicionado com sucesso.")
     limpar_campos()
 
+# Função para consultar automóveis
+def consultar_automovel():
+    automoveis = session.query(Carro).all()
+
+    if not automoveis:
+        messagebox.showinfo("Consulta", "Nenhum automóvel encontrado.")
+        return
+
+    consulta_texto = ""
+    for automovel in automoveis:
+        consulta_texto += (
+            f"Placa: {automovel.placa}\n"
+            f"Cor: {automovel.cor}\n"
+            f"Marca: {automovel.marca}\n"
+            f"Modelo: {automovel.modelo}\n"
+            f"Valor: {automovel.valor}\n"
+            f"Valor diário: {automovel.valor_diario}\n"
+            f"Quilometragem: {automovel.km}\n"
+            f"Status: {automovel.status.value}\n{'-'*20}\n"
+        )
+
+    messagebox.showinfo("Consulta de Automóveis", consulta_texto)
+
+# Função para limpar os campos de entrada
 def limpar_campos():
     entry_placa.delete(0, tk.END)
     entry_cor.delete(0, tk.END)
@@ -72,49 +95,6 @@ def limpar_campos():
     entry_valor.delete(0, tk.END)
     entry_valor_diario.delete(0, tk.END)
     entry_km.delete(0, tk.END)
-
-def editar_automovel():
-    placa = simpledialog.askstring("Editar Automóvel", "Digite a placa do automóvel a ser editado:")
-    if not placa:
-        return
-    
-    automovel = session.query(Carro).filter_by(placa=placa).first()
-    if not automovel:
-        messagebox.showerror("Erro", f"Automóvel com placa '{placa}' não encontrado.")
-        return
-
-    nova_cor = simpledialog.askstring("Editar Automóvel", f"Nova cor (atual: {automovel.cor}):")
-    novo_valor = simpledialog.askfloat("Editar Automóvel", f"Novo valor (atual: {automovel.valor}):")
-    novo_valor_diario = simpledialog.askfloat("Editar Automóvel", f"Novo valor diário (atual: {automovel.valor_diario}):")
-    nova_km = simpledialog.askfloat("Editar Automóvel", f"Nova quilometragem (atual: {automovel.km}):")
-    
-    automovel.cor = nova_cor if nova_cor else automovel.cor
-    automovel.valor = novo_valor if novo_valor else automovel.valor
-    automovel.valor_diario = novo_valor_diario if novo_valor_diario else automovel.valor_diario
-    automovel.km = nova_km if nova_km else automovel.km
-    session.commit()
-    messagebox.showinfo("Sucesso", f"Automóvel '{placa}' atualizado com sucesso.")
-
-def atualizar_status():
-    placa = simpledialog.askstring("Atualizar Status", "Digite a placa do automóvel para atualizar o status:")
-    if not placa:
-        return
-    
-    automovel = session.query(Carro).filter_by(placa=placa).first()
-    if not automovel:
-        messagebox.showerror("Erro", f"Automóvel com placa '{placa}' não encontrado.")
-        return
-
-    status_selecionado = simpledialog.askstring("Atualizar Status", "Escolha o novo status (disponivel, alugado, em_manuntencao, fora_de_servico):")
-    status_selecionado = status_selecionado.strip().lower()
-    
-    if status_selecionado not in [status.value for status in Status]:
-        messagebox.showerror("Erro", "Status inválido.")
-        return
-
-    automovel.status = Status(status_selecionado)
-    session.commit()
-    messagebox.showinfo("Sucesso", f"Status do automóvel '{placa}' atualizado para '{status_selecionado}'.")
 
 # Criação da interface Tkinter
 root = tk.Tk()
@@ -150,14 +130,11 @@ entry_km = tk.Entry(root)
 entry_km.grid(row=6, column=1)
 
 # Botões
-btn_adicionar = tk.Button(root, text="Adicionar Automóvel", command=adicionar_automovel_Interface)
+btn_adicionar = tk.Button(root, text="Adicionar Automóvel", command=adicionar_automovel)
 btn_adicionar.grid(row=7, column=0, columnspan=2, pady=5)
 
-
-btn_status = tk.Button(root, text="Atualizar Status", command=atualizar_status)
-btn_status.grid(row=10, column=0, columnspan=2, pady=5)
-
-
+btn_consultar = tk.Button(root, text="Consultar Automóveis", command=consultar_automovel)
+btn_consultar.grid(row=8, column=0, columnspan=2, pady=5)
 
 # Inicia o loop da interface
 root.mainloop()

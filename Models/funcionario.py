@@ -24,30 +24,6 @@ class Funcionario(Locadora):
             raise ValueError("Função não pode ser vazia.")
         self.Funcao = funcao
 
-
-def adicionar_funcionario(session, nome, idade, cpf, data_nasc, funcao):
-    try:
-        
-        data_nasc = datetime.strptime(data_nasc, '%d/%m/%Y')
-
-
-        novo_funcionario = Funcionario(nome, idade, cpf, data_nasc,funcao)
-
-        # Chamando as validações em ordem
-        novo_funcionario.Validar_nome(nome)
-        novo_funcionario.Validar_idade(idade)
-        novo_funcionario.Validar_Cpf(cpf, session)
-        novo_funcionario.Validar_funcao(funcao)
-      
-
-        session.add(novo_funcionario)
-        session.commit()
-        return f"funcionario '{nome}' adicionado com sucesso."
-    except ValueError as e:
-        return f"Erro ao adicionar funcionario: {e}"
-    except Exception as e:
-        return f"Ocorreu um erro inesperado: {e}"
-
 # Configura o banco de dados
 engine = create_engine('sqlite:///locadora.db')
 Base.metadata.create_all(engine)
