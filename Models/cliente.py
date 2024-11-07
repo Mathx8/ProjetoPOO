@@ -5,7 +5,8 @@ from sqlalchemy.orm import sessionmaker
 from datetime import datetime
 import tkinter as tk
 from tkinter import messagebox
-from pessoa import DataNascFuturaException, DataNascFormatException
+from Erros import DataNascFuturaException, DataNascFormatException
+from Erros import IdadeInvalidaException,IdadeMinimaException, CpfExistenteException,CpfInvalidoException
 
 class Cliente(Locadora): 
     __tablename__ = 'cliente'
@@ -36,7 +37,8 @@ class Cliente(Locadora):
 
     def Validar_Data_Emissao(self, data_Emissao):
         if data_Emissao >= datetime.now():
-            raise ValueError("Data de emissão não pode ser no futuro.")
+            raise DataNascFuturaException
+        
         self.Data_Emissao = data_Emissao
 
     def Validar_Data_Validade(self, data_Validade):
@@ -67,6 +69,8 @@ def adicionar_cliente(session, nome, idade, cpf, data_nasc, numero_carteira, cat
         return f"Cliente '{nome}' adicionado com sucesso."
     except ValueError as e:
         return f"Erro ao adicionar cliente: {e}"
+    except Exception as e:
+        return f"Ocorreu um erro inesperado: {e}"
 
 # Configura o banco de dados
 engine = create_engine('sqlite:///locadora.db')
@@ -85,12 +89,12 @@ def adicionar_cliente_interface():
     data_validade = entry_data_validade.get()
 
     try:
-        # Convertendo as datas para o formato DD/MM/YYYY
+  
         novo_cliente = Cliente(nome, idade, cpf,data_nasc,numero_carteira, categoria,data_emissao,data_validade)
 
         # Chamando as validações em ordem
         novo_cliente.Validar_nome(nome)
-        novo_cliente.Validar_idade(int(idade))
+        novo_cliente.Validar_idade(idade)
         novo_cliente.Validar_Cpf(cpf, session)
         novo_cliente.Validar_DataNasc(datetime.strptime(data_nasc, '%d/%m/%Y'))
         novo_cliente.Validar_Numero_Carteira(numero_carteira)
@@ -112,15 +116,25 @@ def adicionar_cliente_interface():
         entry_data_emissao.delete(0, tk.END)
         entry_data_validade.delete(0, tk.END)
         
-
+        # Erros Data
     except DataNascFuturaException as dt:
         messagebox.showerror("Erro de Data", str(dt))
-        
-    except ValueError as dt:
+    except DataNascFormatException as dt:
         messagebox.showerror("Erro de Data", str(dt))
-        
-    
-        
+        # Erros Idade
+    except IdadeInvalidaException as i:
+        messagebox.showerror("Erro de Idade", str(i))
+    except IdadeMinimaException as i:
+        messagebox.showerror("Erro de Idade", str(i))
+        # Erros CPF
+    except CpfExistenteException as cp:
+            messagebox.showerror("Erro de Cpf", str(cp))   
+    except CpfInvalidoException as cp:
+            messagebox.showerror("Erro de Cpf", str(cp))
+        #Value erro
+    except ValueError as e:
+        messagebox.showerror("Erro:", str(e))
+        #Erro desconhecido 
     except Exception as e:
         messagebox.showerror("Erro", str(e))
 

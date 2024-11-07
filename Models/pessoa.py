@@ -2,15 +2,9 @@ from datetime import datetime
 from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.orm import declarative_base
 from base import Base
+from Erros import DataNascFuturaException, DataNascFormatException
+from Erros import IdadeInvalidaException, IdadeMinimaException, CpfInvalidoException, CpfExistenteException
 
-class DataNascFuturaException(Exception):
-    def __init__(self, message="Data de nascimento não pode ser no futuro."):
-        self.message = message
-        super().__init__(self.message)
-class DataNascFormatException(Exception):
-    def __init__(self, message="Data de nascimento inválida. Use o formato DD/MM/YYYY."):
-        self.message = message
-        super().__init__(self.message)
 class Locadora(Base):
     __tablename__ = 'Pessoa'
     
@@ -27,41 +21,49 @@ class Locadora(Base):
         self.DataNasc = DataNasc
 
     def Validar_nome(self, nome):
-        if not nome or len(nome) >3:
-            raise ValueError("Nome não pode ser vazio.")
+        if not nome or len(nome) < 3:
+            raise ValueError("Nome deve conter Min. 3 caracteres.")
         self.Nome = nome
 
     def Validar_idade(self, idade):
-        if not isinstance(idade, int) or idade < 18:  # Permitir idade 18 como válida
-            raise ValueError("Idade inválida, deve ser um número inteiro positivo e maior ou igual a 18 anos.")
-        self.Idade = idade
+        try:
+            idade = int(idade)
+            if idade < 0:
+                raise IdadeInvalidaException
+            if idade < 18:  
+                raise IdadeMinimaException
+            self.Idade = idade
+        except ValueError:
+            raise IdadeInvalidaException
 
     def Validar_Cpf(self, cpf, session):
-        if not (cpf.isdigit() and len(cpf) == 11):
-            raise ValueError("CPF inválido, deve conter 11 dígitos.")
-        
-        cpf_existente = session.query(Locadora).filter_by(Cpf=cpf).first()
-        if cpf_existente:
-            raise ValueError(f"Erro: CPF '{cpf}' já está cadastrado.")
-        
-        self.Cpf = cpf 
+        try:
+            if not (cpf.isdigit() and len(cpf) == 11):
+                raise CpfInvalidoException
+            
+            cpf_existente = session.query(Locadora).filter_by(Cpf=cpf).first()
+            if cpf_existente:
+                raise CpfExistenteException
+            self.Cpf = cpf
+        except (CpfInvalidoException, CpfExistenteException) as e:
+            raise e
 
     def Validar_DataNasc(self, dataNasc):
-            while True:
-                try:
-                    # Converte dataNasc para datetime no formato DD/MM/YYYY
-                    if isinstance(dataNasc, str):
-                        dataNasc = datetime.strptime(dataNasc, '%d/%m/%Y')
-                    
-                    # Verifica se a data está no futuro
-                    if dataNasc > datetime.now():
-                        raise DataNascFuturaException
-                    
-                    self.DataNasc = dataNasc
-                    break
-
-                except ValueError:  
-                            raise DataNascFormatException("Data de nascimento inválida. Use o formato DD/MM/YYYY.") 
+        try:  
+            # Converte dataNasc para datetime no formato DD/MM/YYYY
+            if isinstance(dataNasc, str):
+                dataNasc = datetime.strptime(dataNasc, '%d/%m/%Y')
+                
+            # Verifica se a data está no futuro
+            if dataNasc > datetime.now():
+                raise DataNascFuturaException
+            self.DataNasc = dataNasc
+            
+        except ValueError:
+            raise DataNascFormatException
+        
+        except DataNascFuturaException as e:  
+            raise e
 
     @staticmethod
     def adicionar_locadora(session, nome, idade, cpf, data_nasc):
@@ -75,7 +77,5 @@ class Locadora(Base):
             session.add(nova_Locadora)
             session.commit()
             return f"Usuário '{nome}' adicionado com sucesso."
-        except ValueError as e:
-            return f"Erro ao adicionar usuário: {e}"
         except Exception as e:
             return f"Ocorreu um erro inesperado: {e}"

@@ -1,11 +1,12 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, create_engine
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime 
 from pessoa import Locadora, Base
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
-#Interface
 import tkinter as tk
 from tkinter import messagebox
-
+from Erros import DataNascFuturaException, DataNascFormatException
+from Erros import IdadeInvalidaException,IdadeMinimaException, CpfExistenteException,CpfInvalidoException
 
 class Funcionario(Locadora):
     __tablename__ = 'funcionario'
@@ -23,35 +24,35 @@ class Funcionario(Locadora):
             raise ValueError("Função não pode ser vazia.")
         self.Funcao = funcao
 
+
 def adicionar_funcionario(session, nome, idade, cpf, data_nasc, funcao):
     try:
-        data_nasc = datetime.strptime(data_nasc, '%Y-%m-%d')
         
-        novo_funcionario = Funcionario(nome, idade, cpf, data_nasc, funcao)
+        data_nasc = datetime.strptime(data_nasc, '%d/%m/%Y')
+
+
+        novo_funcionario = Funcionario(nome, idade, cpf, data_nasc,funcao)
+
+        # Chamando as validações em ordem
         novo_funcionario.Validar_nome(nome)
         novo_funcionario.Validar_idade(idade)
         novo_funcionario.Validar_Cpf(cpf, session)
-        novo_funcionario.Validar_DataNasc(data_nasc)
         novo_funcionario.Validar_funcao(funcao)
+      
 
         session.add(novo_funcionario)
         session.commit()
-        return f"Funcionário '{nome}' adicionado com sucesso."
+        return f"funcionario '{nome}' adicionado com sucesso."
     except ValueError as e:
-        return f"Erro ao adicionar funcionário: {e}"
+        return f"Erro ao adicionar funcionario: {e}"
     except Exception as e:
         return f"Ocorreu um erro inesperado: {e}"
 
-# Configura o banco de dados (exemplo com SQLite)
-engine = create_engine('sqlite:///locadora.db')
-Base.metadata.create_all(engine)
- 
-# Configura o banco de dados (exemplo com SQLite)
+# Configura o banco de dados
 engine = create_engine('sqlite:///locadora.db')
 Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 session = Session()
-
 
 def adicionar_funcionario_interface():
     nome = entry_nome.get()
@@ -62,13 +63,20 @@ def adicionar_funcionario_interface():
 
 
     try:
-        # Converte idade para inteiro
-        idade = int(idade)
+  
+        novo_funcionario = Funcionario(nome, idade, cpf,data_nasc,funcao)
 
+        # Chamando as validações em ordem
+        novo_funcionario.Validar_nome(nome)
+        novo_funcionario.Validar_idade(idade)
+        novo_funcionario.Validar_Cpf(cpf, session)
+        novo_funcionario.Validar_DataNasc(datetime.strptime(data_nasc, '%d/%m/%Y'))
+        novo_funcionario.Validar_funcao(funcao)
 
-        # Chama a função para adicionar o cliente
-        resultado = adicionar_funcionario(session, nome, idade, cpf, data_nasc, funcao)
-        messagebox.showinfo("Sucesso", resultado)
+        
+        session.add(novo_funcionario)
+        session.commit()
+        messagebox.showinfo("Resultado", f"funcionario '{nome}' adicionado com sucesso.")
 
         # Limpa os campos após adicionar
         entry_nome.delete(0, tk.END)
@@ -76,17 +84,34 @@ def adicionar_funcionario_interface():
         entry_cpf.delete(0, tk.END)
         entry_data_nasc.delete(0, tk.END)
         entry_funcao.delete(0, tk.END)
-        
 
-    except ValueError as ve:
-        messagebox.showerror("Erro de Valor", f"Erro nos valores fornecidos: {ve}")
+        
+        # Erros Data
+    except DataNascFuturaException as dt:
+        messagebox.showerror("Erro de Data", str(dt))
+    except DataNascFormatException as dt:
+        messagebox.showerror("Erro de Data", str(dt))
+        # Erros Idade
+    except IdadeInvalidaException as i:
+        messagebox.showerror("Erro de Idade", str(i))
+    except IdadeMinimaException as i:
+        messagebox.showerror("Erro de Idade", str(i))
+        # Erros CPF
+    except CpfExistenteException as cp:
+            messagebox.showerror("Erro de Cpf", str(cp))   
+    except CpfInvalidoException as cp:
+            messagebox.showerror("Erro de Cpf", str(cp))
+        #Value erro
+    except ValueError as e:
+        messagebox.showerror("Erro:", str(e))
+        #Erro desconhecido 
     except Exception as e:
         messagebox.showerror("Erro", str(e))
 
+
 if __name__ == "__main__":
-    # Criação da janela principal
     root = tk.Tk()
-    root.title("Cadastro de Clientes")
+    root.title("Cadastro de funcionarios")
 
     # Definindo os rótulos e campos de entrada
     tk.Label(root, text="Nome:").grid(row=0, column=0)
@@ -105,36 +130,14 @@ if __name__ == "__main__":
     entry_data_nasc = tk.Entry(root)
     entry_data_nasc.grid(row=3, column=1)
 
-    tk.Label(root, text="Funçao:").grid(row=4, column=0)
+    tk.Label(root, text="Função:").grid(row=4, column=0)
     entry_funcao = tk.Entry(root)
     entry_funcao.grid(row=4, column=1)
 
 
-
-    # Botão para adicionar cliente
-    btn_adicionar = tk.Button(root, text="Adicionar Funcionario", command=adicionar_funcionario_interface)
+    # Botão para adicionar funcionario
+    btn_adicionar = tk.Button(root, text="Adicionar funcionario", command=adicionar_funcionario_interface)
     btn_adicionar.grid(row=8, column=0, columnspan=2)
 
     # Inicia o loop da interface
     root.mainloop()
-
-'''# Cria uma sessão
-funcionario1 = adicionar_funcionario(session,"João Pereira", 25, "11111111111", "1998-01-15", "Gerente")
-print(funcionario1)
-funcionario2 = adicionar_funcionario(session,"Maria Souza", 27, "22222222222", "1996-05-20", "Atendente")
-print(funcionario2)
-funcionario3 = adicionar_funcionario(session,"Carlos Silva", 29, "33333333333", "1994-10-10", "Supervisor")
-print(funcionario3)
-funcionario4 = adicionar_funcionario(session,"Ana Oliveira", 26, "44444444444", "1997-03-30", "Auxiliar")
-print(funcionario4)
-funcionario5 = adicionar_funcionario(session,"Luciana Santos", 28, "55555555555", "1995-12-25", "Vendedora")
-print(funcionario5)
-        
-# Confirma a adição no banco de dados
-session.commit()
-
-print("Cinco funcionários foram adicionados com sucesso.")
-
-# Fecha a sessão
-session.close()'''
-
