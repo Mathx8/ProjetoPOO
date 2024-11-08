@@ -3,7 +3,7 @@ from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.orm import declarative_base
 from base import Base
 from Erros import DataNascFuturaException, DataNascFormatException
-from Erros import IdadeInvalidaException, IdadeMinimaException, CpfInvalidoException, CpfExistenteException
+from Erros import InvalidaException, IdadeMinimaException, CpfInvalidoException, CpfExistenteException
 
 class Locadora(Base):
     __tablename__ = 'Pessoa'
@@ -29,12 +29,12 @@ class Locadora(Base):
         try:
             idade = int(idade)
             if idade < 0:
-                raise IdadeInvalidaException
+                raise InvalidaException
             if idade < 18:  
                 raise IdadeMinimaException
             self.Idade = idade
         except ValueError:
-            raise IdadeInvalidaException
+            raise InvalidaException
 
     def Validar_Cpf(self, cpf, session):
         try:

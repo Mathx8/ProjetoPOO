@@ -3,7 +3,7 @@ from tkinter import messagebox,simpledialog
 from sqlalchemy import create_engine, Column, String, Float, Enum
 from sqlalchemy.orm import sessionmaker
 from base import Base
-from Erros import PlacaExistenteException  # Assumindo que você tem essas exceções
+from Erros import PlacaExistenteException, InvalidaException  # Assumindo que você tem essas exceções
 import enum
 
 # Configuração do banco de dados
@@ -28,7 +28,7 @@ class Carro(Base):
     km = Column(Float)
     status = Column(Enum(Status))
 
-    def __init__(self, placa, cor, marca, modelo, valor, valor_diario, km, status):
+    def __init__(self, placa, cor, marca, modelo, valor, valor_diario, km):
         self.placa=placa
         self.cor=cor
         self.marca=marca
@@ -36,7 +36,7 @@ class Carro(Base):
         self.valor=valor
         self.valor_diario=valor_diario
         self.km=km
-        self.status = status
+        self.status = Status.DISPONIVEL
 
     def Validar_placa(self, placa):
         if not placa or len(placa) < 7:
@@ -61,21 +61,33 @@ class Carro(Base):
         self.modelo = modelo
 
     def Validar_valor(self, valor):
-        valor = float(valor)
-        if valor <= 0:
-            raise ValueError("Valor deve ser um número positivo.")
-        self.valor = valor
+        try:
+            valor = float(valor)
+            if valor < 0:
+                raise InvalidaException
+            self.valor = valor
+        except ValueError:
+            raise InvalidaException
+
 
     def Validar_valor_diario(self, valor_diario):
-        if valor_diario <= 0:
-            raise ValueError("Valor diário deve ser um número positivo.")
-        self.valor_diario = valor_diario
-
-    def Validar_km(self, km):
-        if km < 0:
-            raise ValueError("Quilometragem não pode ser negativa.")
-        self.km = km
+        try:
+            valor_diario = float(valor_diario)
+            if valor_diario < 0:
+                raise InvalidaException
+            self.valor_diario = valor_diario
+        except ValueError:
+            raise InvalidaException
         
+    def Validar_km(self, km):
+        try:
+            km = float(km)
+            if km < 0:
+                raise InvalidaException
+            self.km = km
+        except ValueError:
+            raise InvalidaException
+            
     def Validar_status(self, status):
         if status not in Status.__members__:
             raise ValueError("Status inválido. Escolha um dos seguintes: disponível, alugado, em manutenção, fora de serviço.")
@@ -165,8 +177,8 @@ def adicionar_automovel_interface():
         novo_carro.Validar_marca(marca)
         novo_carro.Validar_modelo(modelo)
         novo_carro.Validar_valor(valor)
-        novo_carro.Validar_valor_diario(float(valor_diario))
-        novo_carro.Validar_km(float(km))
+        novo_carro.Validar_valor_diario(valor_diario)
+        novo_carro.Validar_km(km)
         
         session.add(novo_carro)
         session.commit()
@@ -181,10 +193,12 @@ def adicionar_automovel_interface():
         entry_valor_diario.delete(0, tk.END)
         entry_km.delete(0, tk.END)
 
-    except ValueError as e:
-        messagebox.showerror("Erro de Valor", str(e))
     except PlacaExistenteException as e:
         messagebox.showerror("Erro de Placa", str(e))
+    except InvalidaException as e:
+        messagebox.showerror("Erro de Valor",str(e) )
+    except ValueError as e:
+        messagebox.showerror("Erro", str(e))
     except Exception as e:
         messagebox.showerror("Erro Desconhecido", str(e))
 

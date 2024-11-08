@@ -9,8 +9,8 @@ class DataNascFormatException(Exception):
         super().__init__(self.message)
         
         
-class IdadeInvalidaException(Exception):
-    def __init__(self, message="Idade inválida. O número deve ser positivo e inteiro."):
+class InvalidaException(Exception):
+    def __init__(self, message="O número deve ser positivo."):
         self.message = message
         super().__init__(self.message)
 

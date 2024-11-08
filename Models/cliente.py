@@ -6,7 +6,7 @@ from datetime import datetime
 import tkinter as tk
 from tkinter import messagebox
 from Erros import DataNascFuturaException, DataNascFormatException
-from Erros import IdadeInvalidaException,IdadeMinimaException, CpfExistenteException,CpfInvalidoException
+from Erros import InvalidaException,IdadeMinimaException, CpfExistenteException,CpfInvalidoException
 
 class Cliente(Locadora): 
     __tablename__ = 'cliente'
@@ -98,7 +98,7 @@ def adicionar_cliente_interface():
     except DataNascFormatException as dt:
         messagebox.showerror("Erro de Data", str(dt))
         # Erros Idade
-    except IdadeInvalidaException as i:
+    except InvalidaException as i:
         messagebox.showerror("Erro de Idade", str(i))
     except IdadeMinimaException as i:
         messagebox.showerror("Erro de Idade", str(i))
@@ -108,8 +108,7 @@ def adicionar_cliente_interface():
     except CpfInvalidoException as cp:
             messagebox.showerror("Erro de Cpf", str(cp))
         #Value erro
-    except ValueError as e:
-        messagebox.showerror("Erro:", str(e))
+
         #Erro desconhecido 
     except Exception as e:
         messagebox.showerror("Erro", str(e))
