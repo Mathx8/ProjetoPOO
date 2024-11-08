@@ -1,8 +1,9 @@
 import tkinter as tk
-from tkinter import messagebox, simpledialog
-from sqlalchemy import create_engine, Column, Integer, String, Float, Enum
+from tkinter import messagebox,simpledialog
+from sqlalchemy import create_engine, Column, String, Float, Enum
 from sqlalchemy.orm import sessionmaker
 from base import Base
+from Erros import PlacaExistenteException  # Assumindo que você tem essas exceções
 import enum
 
 # Configuração do banco de dados
@@ -13,8 +14,8 @@ session = Session()
 class Status(enum.Enum):
     DISPONIVEL = "disponivel"
     ALUGADO = "alugado"
-    EM_MANUNTENCAO = "em_manuntencao"
-    FORA_DE_SERVICO = "fora_de_servico"
+    EM_MANUTENCAO = "em manutencao"
+    FORA_DE_SERVICO = "fora de servico"
 
 class Carro(Base):
     __tablename__ = 'automovel'
@@ -27,41 +28,58 @@ class Carro(Base):
     km = Column(Float)
     status = Column(Enum(Status))
 
-# Criação das tabelas no banco de dados
-Base.metadata.create_all(engine)
+    def __init__(self, placa, cor, marca, modelo, valor, valor_diario, km, status):
+        self.placa=placa
+        self.cor=cor
+        self.marca=marca
+        self.modelo=modelo
+        self.valor=valor
+        self.valor_diario=valor_diario
+        self.km=km
+        self.status = status
 
-# Função para adicionar automóvel
-def adicionar_automovel():
-    placa = entry_placa.get().strip()
-    cor = entry_cor.get().strip()
-    marca = entry_marca.get().strip()
-    modelo = entry_modelo.get().strip()
-    valor = entry_valor.get().strip()
-    valor_diario = entry_valor_diario.get().strip()
-    km = entry_km.get().strip()
+    def Validar_placa(self, placa):
+        if not placa or len(placa) < 7:
+            raise ValueError("Placa inválida. Deve conter 7 caracteres.")
+        if session.query(Carro).filter_by(placa=placa).first():
+            raise PlacaExistenteException
+        self.placa = placa
 
-    if not placa or not cor or not marca or not modelo or not valor or not valor_diario or not km:
-        messagebox.showerror("Erro", "Preencha todos os campos")
-        return
+    def Validar_cor(self, cor):
+        if not cor:
+            raise ValueError("A cor não pode ser vazia.")
+        self.cor = cor
 
-    try:
+    def Validar_marca(self, marca):
+        if not marca:
+            raise ValueError("A marca não pode ser vazia.")
+        self.marca = marca
+
+    def Validar_modelo(self, modelo):
+        if not modelo:
+            raise ValueError("O modelo não pode ser vazio.")
+        self.modelo = modelo
+
+    def Validar_valor(self, valor):
         valor = float(valor)
-        valor_diario = float(valor_diario)
-        km = float(km)
-    except ValueError:
-        messagebox.showerror("Erro", "Insira valores numéricos válidos para valor, valor diário e km")
-        return
+        if valor <= 0:
+            raise ValueError("Valor deve ser um número positivo.")
+        self.valor = valor
 
-    automovel_existente = session.query(Carro).filter_by(placa=placa).first()
-    if automovel_existente:
-        messagebox.showerror("Erro", f"Já existe um automóvel com a placa '{placa}'.")
-        return
+    def Validar_valor_diario(self, valor_diario):
+        if valor_diario <= 0:
+            raise ValueError("Valor diário deve ser um número positivo.")
+        self.valor_diario = valor_diario
 
-    novo_automovel = Carro(placa=placa, cor=cor, marca=marca, modelo=modelo, valor=valor, valor_diario=valor_diario, km=km, status=Status.DISPONIVEL)
-    session.add(novo_automovel)
-    session.commit()
-    messagebox.showinfo("Sucesso", "Automóvel adicionado com sucesso.")
-    limpar_campos()
+    def Validar_km(self, km):
+        if km < 0:
+            raise ValueError("Quilometragem não pode ser negativa.")
+        self.km = km
+        
+    def Validar_status(self, status):
+        if status not in Status.__members__:
+            raise ValueError("Status inválido. Escolha um dos seguintes: disponível, alugado, em manutenção, fora de serviço.")
+        self.status = Status[status]
 
 # Função para consultar automóveis
 def consultar_automovel():
@@ -85,16 +103,94 @@ def consultar_automovel():
         )
 
     messagebox.showinfo("Consulta de Automóveis", consulta_texto)
+    
+def editar_automovel():
+    placa = simpledialog.askstring("Editar Automóvel", "Digite a placa do automóvel a ser editado:")
+    if not placa:
+        return
+    
+    automovel = session.query(Carro).filter_by(placa=placa).first()
+    if not automovel:
+        messagebox.showerror("Erro", f"Automóvel com placa '{placa}' não encontrado.")
+        return
+
+    nova_cor = simpledialog.askstring("Editar Automóvel", f"Nova cor (atual: {automovel.cor}):")
+    novo_valor = simpledialog.askfloat("Editar Automóvel", f"Novo valor (atual: {automovel.valor}):")
+    novo_valor_diario = simpledialog.askfloat("Editar Automóvel", f"Novo valor diário (atual: {automovel.valor_diario}):")
+    nova_km = simpledialog.askfloat("Editar Automóvel", f"Nova quilometragem (atual: {automovel.km}):")
+    
+    automovel.cor = nova_cor if nova_cor else automovel.cor
+    automovel.valor = novo_valor if novo_valor else automovel.valor
+    automovel.valor_diario = novo_valor_diario if novo_valor_diario else automovel.valor_diario
+    automovel.km = nova_km if nova_km else automovel.km
+    session.commit()
+    messagebox.showinfo("Sucesso", f"Automóvel '{placa}' atualizado com sucesso.")
+
+def atualizar_status():
+    placa = simpledialog.askstring("Atualizar Status", "Digite a placa do automóvel para atualizar o status:")
+    if not placa:
+        return
+    
+    automovel = session.query(Carro).filter_by(placa=placa).first()
+    if not automovel:
+        messagebox.showerror("Erro", f"Automóvel com placa '{placa}' não encontrado.")
+        return
+    
+    novo_status = simpledialog.askstring("Atualizar Status", "Escolha um dos seguintes: disponível, alugado, em manutencao, fora de servico.")
+    novo_status = novo_status.strip().lower()
+    
+    automovel.status = Status(novo_status)
+    session.commit()
+    messagebox.showinfo("Sucesso", f"Status do automóvel '{placa}' atualizado para '{novo_status}'.")
+
+
+    
+# Função para adicionar automóvel pela interface
+def adicionar_automovel_interface():
+    placa = entry_placa.get()
+    cor = entry_cor.get()
+    marca = entry_marca.get()
+    modelo = entry_modelo.get()
+    valor = entry_valor.get()
+    valor_diario = entry_valor_diario.get()
+    km = entry_km.get()
+    
+
+    try:
+
+        novo_carro = Carro(placa, cor, marca, modelo, valor, valor_diario, km)
+
+        novo_carro.Validar_placa(placa)
+        novo_carro.Validar_cor(cor)
+        novo_carro.Validar_marca(marca)
+        novo_carro.Validar_modelo(modelo)
+        novo_carro.Validar_valor(valor)
+        novo_carro.Validar_valor_diario(float(valor_diario))
+        novo_carro.Validar_km(float(km))
+        
+        session.add(novo_carro)
+        session.commit()
+        messagebox.showinfo("Sucesso", "Automóvel adicionado com sucesso.")
+        
+        
+        entry_placa.delete(0, tk.END)
+        entry_cor.delete(0, tk.END)
+        entry_marca.delete(0, tk.END)
+        entry_modelo.delete(0, tk.END)
+        entry_valor.delete(0, tk.END)
+        entry_valor_diario.delete(0, tk.END)
+        entry_km.delete(0, tk.END)
+
+    except ValueError as e:
+        messagebox.showerror("Erro de Valor", str(e))
+    except PlacaExistenteException as e:
+        messagebox.showerror("Erro de Placa", str(e))
+    except Exception as e:
+        messagebox.showerror("Erro Desconhecido", str(e))
 
 # Função para limpar os campos de entrada
-def limpar_campos():
-    entry_placa.delete(0, tk.END)
-    entry_cor.delete(0, tk.END)
-    entry_marca.delete(0, tk.END)
-    entry_modelo.delete(0, tk.END)
-    entry_valor.delete(0, tk.END)
-    entry_valor_diario.delete(0, tk.END)
-    entry_km.delete(0, tk.END)
+
+
 
 # Criação da interface Tkinter
 root = tk.Tk()
@@ -130,11 +226,17 @@ entry_km = tk.Entry(root)
 entry_km.grid(row=6, column=1)
 
 # Botões
-btn_adicionar = tk.Button(root, text="Adicionar Automóvel", command=adicionar_automovel)
+btn_adicionar = tk.Button(root, text="Adicionar Automóvel", command=adicionar_automovel_interface)
 btn_adicionar.grid(row=7, column=0, columnspan=2, pady=5)
 
 btn_consultar = tk.Button(root, text="Consultar Automóveis", command=consultar_automovel)
 btn_consultar.grid(row=8, column=0, columnspan=2, pady=5)
+
+btn_status = tk.Button(root, text="Atualizar Status", command=atualizar_status)
+btn_status.grid(row=9, column=0, columnspan=2, pady=5)
+
+btn_status = tk.Button(root, text="Editar Automavel", command=editar_automovel)
+btn_status.grid(row=10, column=0, columnspan=2, pady=5)
 
 # Inicia o loop da interface
 root.mainloop()

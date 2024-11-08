@@ -28,3 +28,9 @@ class CpfExistenteException(Exception):
     def __init__(self, message="Erro: CPF já está cadastrado."):
         self.message = message
         super().__init__(self.message)
+        
+class PlacaExistenteException(Exception):
+    def __init__(self, message="Já existe um carro com a placa no sistema."):
+        self.message = message
+        super().__init__(self.message)
+
