@@ -116,48 +116,49 @@ def atualizar_status():
     session.commit()
     messagebox.showinfo("Sucesso", f"Status do automóvel '{placa}' atualizado para '{status_selecionado}'.")
 
-# Criação da interface Tkinter
-root = tk.Tk()
-root.title("Gerenciamento de Automóveis")
+if __name__ == "__main__":
+    # Criação da interface Tkinter
+    root = tk.Tk()
+    root.title("Gerenciamento de Automóveis")
 
-# Campos de entrada
-tk.Label(root, text="Placa:").grid(row=0, column=0)
-entry_placa = tk.Entry(root)
-entry_placa.grid(row=0, column=1)
+    # Campos de entrada
+    tk.Label(root, text="Placa:").grid(row=0, column=0)
+    entry_placa = tk.Entry(root)
+    entry_placa.grid(row=0, column=1)
 
-tk.Label(root, text="Cor:").grid(row=1, column=0)
-entry_cor = tk.Entry(root)
-entry_cor.grid(row=1, column=1)
+    tk.Label(root, text="Cor:").grid(row=1, column=0)
+    entry_cor = tk.Entry(root)
+    entry_cor.grid(row=1, column=1)
 
-tk.Label(root, text="Marca:").grid(row=2, column=0)
-entry_marca = tk.Entry(root)
-entry_marca.grid(row=2, column=1)
+    tk.Label(root, text="Marca:").grid(row=2, column=0)
+    entry_marca = tk.Entry(root)
+    entry_marca.grid(row=2, column=1)
 
-tk.Label(root, text="Modelo:").grid(row=3, column=0)
-entry_modelo = tk.Entry(root)
-entry_modelo.grid(row=3, column=1)
+    tk.Label(root, text="Modelo:").grid(row=3, column=0)
+    entry_modelo = tk.Entry(root)
+    entry_modelo.grid(row=3, column=1)
 
-tk.Label(root, text="Valor:").grid(row=4, column=0)
-entry_valor = tk.Entry(root)
-entry_valor.grid(row=4, column=1)
+    tk.Label(root, text="Valor:").grid(row=4, column=0)
+    entry_valor = tk.Entry(root)
+    entry_valor.grid(row=4, column=1)
 
-tk.Label(root, text="Valor Diário:").grid(row=5, column=0)
-entry_valor_diario = tk.Entry(root)
-entry_valor_diario.grid(row=5, column=1)
+    tk.Label(root, text="Valor Diário:").grid(row=5, column=0)
+    entry_valor_diario = tk.Entry(root)
+    entry_valor_diario.grid(row=5, column=1)
 
-tk.Label(root, text="Quilometragem:").grid(row=6, column=0)
-entry_km = tk.Entry(root)
-entry_km.grid(row=6, column=1)
+    tk.Label(root, text="Quilometragem:").grid(row=6, column=0)
+    entry_km = tk.Entry(root)
+    entry_km.grid(row=6, column=1)
 
-# Botões
-btn_adicionar = tk.Button(root, text="Adicionar Automóvel", command=adicionar_automovel_Interface)
-btn_adicionar.grid(row=7, column=0, columnspan=2, pady=5)
-
-
-btn_status = tk.Button(root, text="Atualizar Status", command=atualizar_status)
-btn_status.grid(row=10, column=0, columnspan=2, pady=5)
+    # Botões
+    btn_adicionar = tk.Button(root, text="Adicionar Automóvel", command=adicionar_automovel_Interface)
+    btn_adicionar.grid(row=7, column=0, columnspan=2, pady=5)
 
 
+    btn_status = tk.Button(root, text="Atualizar Status", command=atualizar_status)
+    btn_status.grid(row=10, column=0, columnspan=2, pady=5)
 
-# Inicia o loop da interface
-root.mainloop()
+
+
+    # Inicia o loop da interface
+    root.mainloop()
