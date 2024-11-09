@@ -7,7 +7,7 @@ from carro import Carro, Status
 from reserva import Reserva, StatusLocacao  
 from cliente import Cliente
 from sqlalchemy import DateTime, create_engine, Column, Integer, String, ForeignKey
-from sqlalchemy.orm import relationship, sessionmaker, joinedload
+from sqlalchemy.orm import relationship, sessionmaker, joinedload, load_only
 from sqlalchemy.exc import NoResultFound
 from pessoa import Locadora
 
@@ -53,7 +53,7 @@ def alugar_carro():
             messagebox.showerror("Erro", "Carro não disponível para aluguel.")
             return
         
-        cliente = session.query(Cliente).filter_by(Cpf=cpf_cliente).one_or_none()
+        cliente = session.query(Cliente.id_cliente, Cliente.Nome, Cliente.Cpf).filter_by(Cpf=cpf_cliente).one_or_none()
         if not cliente:
             messagebox.showerror("Erro", "Cliente não encontrado. Por favor, registre o cliente primeiro.")
             return
@@ -78,14 +78,14 @@ def alugar_carro():
         messagebox.showinfo("Erro", "Carro ou reserva não encontrada.")
         session.rollback()
     except Exception as e:
-        messagebox.showinfo("Erro", f"Ocorreu um erro: {e}")
+        messagebox.showinfo("Erro2", f"Ocorreu um erro: {e}")
         session.rollback()
         
 def devolver_carro():
     cpf_cliente = simpledialog.askstring("Devolver Carro", "Digite o cpf do cliente: ")
     carro_placa = simpledialog.askstring("Devolver Carro", "Digite a placa do carro alugado: ")
     try:
-        cliente = session.query(Cliente).filter_by(Cpf=cpf_cliente).one_or_none()
+        cliente = session.query(Cliente.id_cliente, Cliente.Nome, Cliente.Cpf).filter_by(Cpf=cpf_cliente).one_or_none()
         if not cliente:
             messagebox.showerror("Erro", "Cliente não encontrado.")
             return
@@ -124,7 +124,7 @@ def devolver_carro():
         session.rollback()
 
 def ver_reservas():
-    reservas = session.query(Locacao).options(joinedload(Locacao.carro), joinedload(Locacao.cliente), joinedload(Locacao.reserva)).all()
+    reservas = session.query(Locacao).options(joinedload(Locacao.carro), joinedload(Locacao.cliente).load_only(Cliente.Nome), joinedload(Locacao.reserva)).all()
 
     if not reservas:
         messagebox.showinfo("Reservas", "Nenhuma reserva encontrada.")
