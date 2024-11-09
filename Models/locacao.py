@@ -1,21 +1,25 @@
-import datetime
+from datetime import datetime, timezone, timedelta
+import tkinter as tk
+from tkinter import messagebox
+from tkinter import simpledialog
 from base import Base
 from carro import Carro, Status
 from reserva import Reserva, StatusLocacao  
 from cliente import Cliente
 from sqlalchemy import DateTime, create_engine, Column, Integer, String, ForeignKey
-from sqlalchemy.orm import relationship, sessionmaker
+from sqlalchemy.orm import relationship, sessionmaker, joinedload
 from sqlalchemy.exc import NoResultFound
 from pessoa import Locadora
 
 engine = create_engine('sqlite:///locadora.db')
 Session = sessionmaker(bind=engine)
 session = Session()
+
 class Locacao(Base):
     __tablename__ = 'locacao'
     
     id = Column(Integer, primary_key=True)
-    data_alocacao = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc))
+    data_alocacao = Column(DateTime, default=lambda: datetime.now(timezone(timedelta(hours=-3))))
     data_devolucao = Column(DateTime)
     valor_total = Column(Integer)
     reserva_id = Column(Integer, ForeignKey('reservas.id'))
@@ -25,12 +29,10 @@ class Locacao(Base):
     carro = relationship('Carro', backref='locacoes')
     cliente = relationship('Cliente')
 
-
     @property
     def calcular_valor_total(self):
         if self.data_devolucao and self.data_alocacao:
             dias_alugados = (self.data_devolucao - self.data_alocacao).days
-            
             if dias_alugados < 1:
                 dias_alugados = 1
 
@@ -42,18 +44,18 @@ class Locacao(Base):
 Base.metadata.create_all(engine)
 
 def alugar_carro():
-    cpf_cliente = input("Digite o cpf do cliente: ")
-    carro_placa = input("Digite a placa do carro: ")
+    cpf_cliente = simpledialog.askstring("Alugar Carro", "Digite o CPF do cliente:")
+    carro_placa = simpledialog.askstring("Alugar Carro", "Digite a placa do carro:")
     
     try:
         carro = session.query(Carro).filter_by(placa=carro_placa).one()
         if carro.status != Status.DISPONIVEL:
-            print("Carro não disponível para aluguel.")
+            messagebox.showerror("Erro", "Carro não disponível para aluguel.")
             return
         
         cliente = session.query(Cliente).filter_by(Cpf=cpf_cliente).one_or_none()
         if not cliente:
-            print("Cliente não encontrado. Por favor, registre o cliente primeiro.")
+            messagebox.showerror("Erro", "Cliente não encontrado. Por favor, registre o cliente primeiro.")
             return
         
         reserva = Reserva(status=StatusLocacao.RESERVADO)
@@ -67,38 +69,37 @@ def alugar_carro():
         )
         
         carro.status = Status.ALUGADO
-        
         session.add(locacao)
         session.commit()
 
-        print(f"Carro {carro.placa} alugado com sucesso para o cliente {cliente.Nome}.")
+        messagebox.showinfo("Sucesso", f"Carro {carro.placa} alugado com sucesso para o cliente {cliente.Nome}.")
 
     except NoResultFound:
-        print("Carro ou reserva não encontrada.")
+        messagebox.showinfo("Erro", "Carro ou reserva não encontrada.")
         session.rollback()
     except Exception as e:
-        print(f"Ocorreu um erro: {e}")
+        messagebox.showinfo("Erro", f"Ocorreu um erro: {e}")
         session.rollback()
         
 def devolver_carro():
-    cpf_cliente = input("Digite o cpf do cliente: ")
-    carro_placa = input("Digite a placa do carro alugado: ")
+    cpf_cliente = simpledialog.askstring("Devolver Carro", "Digite o cpf do cliente: ")
+    carro_placa = simpledialog.askstring("Devolver Carro", "Digite a placa do carro alugado: ")
     try:
         cliente = session.query(Cliente).filter_by(Cpf=cpf_cliente).one_or_none()
         if not cliente:
-            print("Cliente não encontrado.")
+            messagebox.showerror("Erro", "Cliente não encontrado.")
             return
         
         locacao = session.query(Locacao).filter_by(cliente_id=cliente.id_cliente, carro_placa=carro_placa).all()
         if not locacao:
-            print("Locação não encontrada para este cliente e carro.")
+            messagebox.showerror("Erro", "Locação não encontrada para este cliente e carro.")
             return
         
         locacao = max(locacao, key=lambda l: l.data_alocacao)
         
         carro = session.query(Carro).filter_by(placa=carro_placa).one_or_none()
         if not carro:
-            print("Carro não encontrado.")
+            messagebox.showerror("Erro", "Carro não encontrado.")
             return
         
         reserva = session.query(Reserva).filter_by(id=locacao.reserva_id).one_or_none()
@@ -106,42 +107,56 @@ def devolver_carro():
             reserva.status = StatusLocacao.DEVOLVIDO
 
         carro.status = Status.DISPONIVEL
-        
-        locacao.data_devolucao = datetime.datetime.now(datetime.timezone.utc)
+        locacao.data_devolucao = datetime.now(timezone(timedelta(hours=-3)))
         
         session.commit()
 
         locacao.valor_total = locacao.calcular_valor_total
         session.commit()
         
-        print(f"Carro {carro.placa} devolvido com sucesso pelo cliente {cliente.Nome}.")
-        print(f"Valor total a pagar: R$ {locacao.calcular_valor_total:.2f}")
+        messagebox.showinfo("Sucesso", f"Carro {carro.placa} devolvido com sucesso pelo cliente {cliente.Nome}. Valor total a pagar: R$ {locacao.valor_total:.2f}")
     
     except NoResultFound:
-        print("Erro ao localizar carro ou locação.")
+        messagebox.showerror("Erro", "Erro ao localizar carro ou locação.")
         session.rollback()
     except Exception as e:
-        print(f"Ocorreu um erro: {e}")
+        messagebox.showerror("Erro", f"Ocorreu um erro: {e}")
         session.rollback()
 
+def ver_reservas():
+    reservas = session.query(Locacao).options(joinedload(Locacao.carro), joinedload(Locacao.cliente), joinedload(Locacao.reserva)).all()
 
-def main():
-    while True:
-        print('\nEscolha uma opção:')
-        print('1. Alugar Automovel')
-        print('2. Devolver Automoveis')
-        print('3. Sair')
+    if not reservas:
+        messagebox.showinfo("Reservas", "Nenhuma reserva encontrada.")
+        return
 
-        opcao = input('Opção: ')
-        if opcao == '1':
-            alugar_carro()
-        elif opcao == '2':
-            devolver_carro()  
-        elif opcao == '3':
-            break
-    
-        else:
-            print('Opção inválida. Tente novamente.')
+    consulta_texto = ""
+    for reserva in reservas:
+        valor_total_texto = f"R$ {reserva.valor_total:.2f}" if reserva.valor_total is not None else "Em andamento"
+        status_texto = reserva.reserva.status.value if reserva.reserva and reserva.reserva.status else "Status Indefinido"
 
+        consulta_texto += (
+            f"Reserva {reserva.id} [{status_texto}]\n"
+            f"Cliente: {reserva.cliente.Nome}\n"
+            f"Carro: {reserva.carro.modelo}\n"
+            f"Placa: {reserva.carro.placa}\n"
+            f"Data de Alocação: {reserva.data_alocacao.strftime('%d/%m/%Y %H:%M')}\n"
+            f"Data de Devolução: {(reserva.data_devolucao.strftime('%d/%m/%Y %H:%M') if reserva.data_devolucao else 'Carro Não Devolvido')}\n"
+            f"Valor Total: {valor_total_texto}\n{'-'*50}\n"
+        )
+
+    messagebox.showinfo("Reservas de Automóveis", consulta_texto)
 if __name__ == "__main__":
-    main()
+    root = tk.Tk()
+    root.title("Sistema de Locação de Automóveis")
+
+    btn_alugar_carro = tk.Button(root, text="Alugar Automóvel", command=alugar_carro)
+    btn_alugar_carro.grid(row=0, column=0, padx=10, pady=5)
+
+    btn_devolver_carro = tk.Button(root, text="Devolver Automóvel", command=devolver_carro)
+    btn_devolver_carro.grid(row=1, column=0, padx=10, pady=5)
+
+    btn_ver_reservas = tk.Button(root, text="Ver Reservas", command=ver_reservas)
+    btn_ver_reservas.grid(row=2, column=0, padx=10, pady=5)
+
+    root.mainloop()

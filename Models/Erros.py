@@ -2,6 +2,11 @@ class DataNascFuturaException(Exception):
     def __init__(self, message="Data não pode ser no futuro."):
         self.message = message
         super().__init__(self.message)
+
+class DataNascPresenteException(Exception):
+    def __init__(self, message="Data não pode ser no passado."):
+        self.message = message
+        super().__init__(self.message)
         
 class DataNascFormatException(Exception):
     def __init__(self, message="Data de nascimento inválida. Use o formato DD/MM/YYYY."):

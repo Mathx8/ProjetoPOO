@@ -6,7 +6,7 @@ from datetime import datetime
 import tkinter as tk
 from tkinter import messagebox
 from Erros import DataNascFuturaException, DataNascFormatException
-from Erros import IdadeInvalidaException,IdadeMinimaException, CpfExistenteException,CpfInvalidoException
+from Erros import InvalidaException,IdadeMinimaException, CpfExistenteException,CpfInvalidoException
 
 class Funcionario(Locadora):
     __tablename__ = 'funcionario'
@@ -68,7 +68,7 @@ def adicionar_funcionario_interface():
     except DataNascFormatException as dt:
         messagebox.showerror("Erro de Data", str(dt))
         # Erros Idade
-    except IdadeInvalidaException as i:
+    except InvalidaException as i:
         messagebox.showerror("Erro de Idade", str(i))
     except IdadeMinimaException as i:
         messagebox.showerror("Erro de Idade", str(i))

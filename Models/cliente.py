@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from datetime import datetime
 import tkinter as tk
 from tkinter import messagebox
-from Erros import DataNascFuturaException, DataNascFormatException
+from Erros import DataNascFuturaException, DataNascFormatException, DataNascPresenteException
 from Erros import InvalidaException,IdadeMinimaException, CpfExistenteException,CpfInvalidoException
 
 class Cliente(Locadora): 
@@ -36,15 +36,25 @@ class Cliente(Locadora):
         self.Categoria = categoria
 
     def Validar_Data_Emissao(self, data_Emissao):
-        if data_Emissao >= datetime.now():
-            raise DataNascFuturaException
+        try:
+            if isinstance(data_Emissao, str):
+                data_Emissao = datetime.strptime(data_Emissao, '%d/%m/%Y')       
+            if data_Emissao >= datetime.now():
+                raise DataNascFuturaException
+            self.Data_Emissao = data_Emissao
+        except ValueError:
+            raise DataNascFormatException
         
-        self.Data_Emissao = data_Emissao
-
     def Validar_Data_Validade(self, data_Validade):
-        if data_Validade <= datetime.now():
-            raise ValueError("Data de validade deve ser uma data futura.")
-        self.Data_Validade = data_Validade
+        try:
+            if isinstance(data_Validade, str):
+                data_Validade = datetime.strptime(data_Validade, '%d/%m/%Y')            
+            if data_Validade <= datetime.now():
+                raise DataNascPresenteException('A data deve ser uma data futura')
+            self.Data_Validade = data_Validade
+        except ValueError:
+            raise DataNascFormatException 
+           
 
 
 
@@ -72,11 +82,11 @@ def adicionar_cliente_interface():
         novo_cliente.Validar_nome(nome)
         novo_cliente.Validar_idade(idade)
         novo_cliente.Validar_Cpf(cpf, session)
-        novo_cliente.Validar_DataNasc(datetime.strptime(data_nasc, '%d/%m/%Y'))
+        novo_cliente.Validar_DataNasc(data_nasc)
         novo_cliente.Validar_Numero_Carteira(numero_carteira)
         novo_cliente.Validar_categoria(categoria)
-        novo_cliente.Validar_Data_Emissao(datetime.strptime(data_emissao, '%d/%m/%Y'))
-        novo_cliente.Validar_Data_Validade(datetime.strptime(data_validade, '%d/%m/%Y'))
+        novo_cliente.Validar_Data_Emissao(data_emissao)
+        novo_cliente.Validar_Data_Validade(data_validade)
         
         session.add(novo_cliente)
         session.commit()
@@ -97,6 +107,8 @@ def adicionar_cliente_interface():
         messagebox.showerror("Erro de Data", str(dt))
     except DataNascFormatException as dt:
         messagebox.showerror("Erro de Data", str(dt))
+    except DataNascPresenteException as dt:
+        messagebox.showerror("Erro de Data", str(dt))        
         # Erros Idade
     except InvalidaException as i:
         messagebox.showerror("Erro de Idade", str(i))

@@ -7,9 +7,9 @@ from reserva import Reserva
 from locacao import Locacao
 from carro import Carro 
 import pandas as pd
-'''import reserva
+import reserva
 import carro
-from locacao import Locacao'''
+from locacao import Locacao
 from base import Base
 
 engine = create_engine('sqlite:///locadora.db')
@@ -19,7 +19,7 @@ session = Session()
 
 Base.metadata.create_all(engine)
 
-Pessoa = pd.read_sql_table("Pessoa", con=engine)
+'''Pessoa = pd.read_sql_table("Pessoa", con=engine)
 
 
-print(Pessoa)
+print(Pessoa)'''
