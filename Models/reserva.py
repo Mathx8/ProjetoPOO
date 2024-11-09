@@ -8,8 +8,8 @@ Session = sessionmaker(bind=engine)
 session = Session()
 
 class StatusLocacao(enum.Enum):
-    RESERVADO = "reservado"
-    DEVOLVIDO = "devolvido"    
+    RESERVADO = "Reservado"
+    DEVOLVIDO = "Devolvido"    
 
 class Reserva(Base):
     __tablename__ = 'reservas'

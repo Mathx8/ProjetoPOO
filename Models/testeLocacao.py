@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timezone, timedelta
 import tkinter as tk
 from tkinter import messagebox
 from tkinter import simpledialog
@@ -19,7 +19,7 @@ class Locacao(Base):
     __tablename__ = 'locacao'
     
     id = Column(Integer, primary_key=True)
-    data_alocacao = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc))
+    data_alocacao = Column(DateTime, default=lambda: datetime.now(timezone(timedelta(hours=-3))))
     data_devolucao = Column(DateTime)
     valor_total = Column(Integer)
     reserva_id = Column(Integer, ForeignKey('reservas.id'))
@@ -107,7 +107,7 @@ def devolver_carro():
             reserva.status = StatusLocacao.DEVOLVIDO
 
         carro.status = Status.DISPONIVEL
-        locacao.data_devolucao = datetime.datetime.now(datetime.timezone.utc)
+        locacao.data_devolucao = datetime.now(timezone(timedelta(hours=-3)))
         
         session.commit()
 
@@ -124,7 +124,7 @@ def devolver_carro():
         session.rollback()
 
 def ver_reservas():
-    reservas = session.query(Locacao).options(joinedload(Locacao.carro), joinedload(Locacao.cliente)).all()
+    reservas = session.query(Locacao).options(joinedload(Locacao.carro), joinedload(Locacao.cliente), joinedload(Locacao.reserva)).all()
 
     if not reservas:
         messagebox.showinfo("Reservas", "Nenhuma reserva encontrada.")
@@ -133,14 +133,15 @@ def ver_reservas():
     consulta_texto = ""
     for reserva in reservas:
         valor_total_texto = f"R$ {reserva.valor_total:.2f}" if reserva.valor_total is not None else "Em andamento"
+        status_texto = reserva.reserva.status.value if reserva.reserva and reserva.reserva.status else "Status Indefinido"
 
         consulta_texto += (
-            f"Reserva ID: {reserva.id}\n"
+            f"Reserva {reserva.id} [{status_texto}]\n"
             f"Cliente: {reserva.cliente.Nome}\n"
             f"Carro: {reserva.carro.modelo}\n"
             f"Placa: {reserva.carro.placa}\n"
-            f"Data de Alocação: {reserva.data_alocacao}\n"
-            f"Data de Devolução: {reserva.data_devolucao or 'Ainda não devolvido'}\n"
+            f"Data de Alocação: {reserva.data_alocacao.strftime('%d/%m/%Y %H:%M')}\n"
+            f"Data de Devolução: {(reserva.data_devolucao.strftime('%d/%m/%Y %H:%M') if reserva.data_devolucao else 'Carro Não Devolvido')}\n"
             f"Valor Total: {valor_total_texto}\n{'-'*50}\n"
         )
 
